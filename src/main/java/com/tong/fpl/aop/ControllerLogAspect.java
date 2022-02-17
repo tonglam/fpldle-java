@@ -31,9 +31,7 @@ public class ControllerLogAspect {
         this.stringBuffer = new StringBuffer();
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes != null) {
-            // ip
             HttpServletRequest request = attributes.getRequest();
-            // params
             this.stringBuffer.append("url:{").append(request.getRequestURI()).append("}");
             this.stringBuffer.append(", method:{").append(request.getMethod()).append("}");
             this.stringBuffer.append(", args:{").append(Arrays.toString(joinPoint.getArgs())).append("}");

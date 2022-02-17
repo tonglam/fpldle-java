@@ -1,6 +1,7 @@
 package com.tong.fpl.aop;
 
 import com.tong.fpl.config.log.ControllerLog;
+import com.tong.fpl.util.JsonUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
@@ -45,7 +46,9 @@ public class ControllerLogAspect {
 
     @AfterReturning(returning = "obj", pointcut = "controllerLog()")
     public void doAfterReturning(Object obj) {
-        this.stringBuffer.append(", response:{data}");
+        this.stringBuffer.append(", response:{");
+        this.stringBuffer.append(JsonUtils.obj2json(obj));
+        this.stringBuffer.append("}");
         this.stringBuffer.append(", elapsed time:").append(System.currentTimeMillis() - this.startTime.get()).append("ms!");
         ControllerLog.info(this.stringBuffer.toString());
     }

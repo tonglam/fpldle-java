@@ -11,7 +11,7 @@
     <groupId>com.tong</groupId>
     <artifactId>fpldle</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <name>fpldle-java</name>
+    <name>fpldle</name>
     <description>fpldle-java</description>
     <properties>
         <java.version>17</java.version>

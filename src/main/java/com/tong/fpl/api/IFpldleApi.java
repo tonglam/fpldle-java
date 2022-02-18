@@ -37,10 +37,9 @@ public interface IFpldleApi {
      * 获取每日结果列表
      *
      * @param openId 用户openId
-     * @param date 日期
      * @return list
      */
-    List<String> getDailyResult(String openId,String date);
+    List<String> getDailyResult(String openId);
 
     /**
      * 获取球员照片

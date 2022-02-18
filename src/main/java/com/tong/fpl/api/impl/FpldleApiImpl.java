@@ -1,12 +1,15 @@
 package com.tong.fpl.api.impl;
 
 import com.tong.fpl.api.IFpldleApi;
+import com.tong.fpl.constant.Constant;
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.service.IFpldleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -34,8 +37,8 @@ public class FpldleApiImpl implements IFpldleApi {
     }
 
     @Override
-    public List<String> getDailyResult(String openId, String date) {
-        return this.fpldleService.getDailyResult(openId, date);
+    public List<String> getDailyResult(String openId) {
+        return this.fpldleService.getDailyResult(openId, LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY)));
     }
 
     @Override

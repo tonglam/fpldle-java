@@ -2,7 +2,6 @@ package com.tong.fpl.api;
 
 import com.tong.fpl.domain.FpldleData;
 
-import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -27,20 +26,12 @@ public interface IFpldleApi {
     String getWechatUserOpenId(String code);
 
     /**
-     * 球员名字模糊查询
-     *
-     * @param fuzzyName 查询值
-     * @return 结果列表
-     */
-    List<String> fuzzyQueryName(String fuzzyName);
-
-    /**
      * 插入每日结果
      *
-     * @param openId     用户openId
-     * @param resultList 结果列表
+     * @param openId 用户openId
+     * @param result 结果
      */
-    void insertDialyResult(String openId, List<String> resultList);
+    void insertDialyResult(String openId, String result);
 
     /**
      * 获取每日结果列表
@@ -54,8 +45,8 @@ public interface IFpldleApi {
      * 获取球员照片
      *
      * @param code player.code
-     * @return picture.inputStream
+     * @return picture.base64
      */
-    InputStream getPlayerPicture(int code);
+    String getPlayerPicture(int code);
 
 }

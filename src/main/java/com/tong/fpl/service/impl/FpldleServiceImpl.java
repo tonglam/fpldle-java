@@ -3,16 +3,14 @@ package com.tong.fpl.service.impl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.tong.fpl.constant.Constant;
-import com.tong.fpl.constant.FpldleGuessResultEnum;
-import com.tong.fpl.constant.PositionEnum;
-import com.tong.fpl.constant.SeasonEnum;
+import com.tong.fpl.constant.enums.PositionEnum;
+import com.tong.fpl.constant.enums.SeasonEnum;
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.entity.PlayerEntity;
 import com.tong.fpl.domain.wechat.AuthSessionData;
 import com.tong.fpl.service.IFpldleService;
 import com.tong.fpl.service.IInterfaceService;
 import com.tong.fpl.service.IRedisCacheService;
-import com.tong.fpl.util.JsonUtils;
 import com.tong.fpl.util.RedisUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,14 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.io.InputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -76,7 +71,7 @@ public class FpldleServiceImpl implements IFpldleService {
                     });
         });
         // redis
-        String key = StringUtils.joinWith("::", "Fpldle", "Dictionary");
+        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DICTIONARY);
         RedisUtils.removeCacheByKey(key);
         Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
         Map<String, Object> valueMap = Maps.newHashMap();
@@ -118,7 +113,7 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @Override
     public Map<String, FpldleData> getFpldleMap() {
-        String key = StringUtils.joinWith("::", "Fpldle", "Dictionary");
+        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DICTIONARY);
         Map<String, FpldleData> map = Maps.newHashMap();
         RedisUtils.getHashByKey(key).forEach((k, v) -> map.put(k.toString(), (FpldleData) v));
         return map;
@@ -131,9 +126,20 @@ public class FpldleServiceImpl implements IFpldleService {
             log.error("fpldle dictionary is empty");
             return;
         }
-        List<FpldleData> list = new ArrayList<>(map.values());
+        // filter history data from redis
+        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DAILY);
+        List<Integer> historyList = Lists.newArrayList();
+        RedisUtils.getHashByKey(key).forEach((k, v) -> {
+            FpldleData historyData = (FpldleData) v;
+            historyList.add(historyData.getCode());
+        });
+        // choose from filtered list
+        List<FpldleData> list = map.values()
+                .stream()
+                .filter(o -> !historyList.contains(o.getCode()))
+                .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(list)) {
-            log.error("fpldle dictionary is empty");
+            log.error("fpldle filterd list is empty");
             return;
         }
         int index = new Random().nextInt(map.size());
@@ -145,11 +151,12 @@ public class FpldleServiceImpl implements IFpldleService {
         log.info("date:{}, fpldle:{}", data, data.getFullName());
         // redis
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
-        String key = StringUtils.joinWith("::", "Fpldle", "Daily", date);
-        RedisUtils.removeCacheByKey(key);
-        Map<String, Object> cacheMap = Maps.newHashMap();
-        cacheMap.put(key, data);
-        RedisUtils.pipelineValueCache(cacheMap, 1, TimeUnit.DAYS);
+        Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+        Map<String, Object> valueMap = Maps.newHashMap();
+        RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(date, v));
+        valueMap.put(date, data);
+        cacheMap.put(key, valueMap);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
 
     @Override
@@ -159,28 +166,32 @@ public class FpldleServiceImpl implements IFpldleService {
             log.error("fpldle dictionary is empty");
             return;
         }
-        List<FpldleData> list = new ArrayList<>(map.values());
-        if (CollectionUtils.isEmpty(list)) {
-            log.error("fpldle dictionary is empty");
-            return;
-        }
-        FpldleData data = list
+        // filter history data from redis
+        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DAILY);
+        List<Integer> historyList = Lists.newArrayList();
+        RedisUtils.getHashByKey(key).forEach((k, v) -> {
+            FpldleData historyData = (FpldleData) v;
+            historyList.add(historyData.getCode());
+        });
+        FpldleData data = map.values()
                 .stream()
+                .filter(o -> !historyList.contains(o.getCode()))
                 .filter(o -> StringUtils.equals(season, o.getSeason()) && element == o.getElement())
                 .findFirst()
                 .orElse(null);
         if (data == null) {
-            log.error("fpldle data is empty");
+            log.error("fpldle data is empty or was used");
             return;
         }
         log.info("date:{}, fpldle:{}", data, data.getFullName());
         // redis
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
-        String key = StringUtils.joinWith("::", "Fpldle", "Daily", date);
-        RedisUtils.removeCacheByKey(key);
-        Map<String, Object> cacheMap = Maps.newHashMap();
-        cacheMap.put(key, data);
-        RedisUtils.pipelineValueCache(cacheMap, 1, TimeUnit.DAYS);
+        Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+        Map<String, Object> valueMap = Maps.newHashMap();
+        RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(date, v));
+        valueMap.put(date, data);
+        cacheMap.put(key, valueMap);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
 
     @Override
@@ -188,8 +199,8 @@ public class FpldleServiceImpl implements IFpldleService {
         if (date.contains("-")) {
             date = date.replaceAll("-", "");
         }
-        String key = StringUtils.joinWith("::", "Fpldle", "Daily", date);
-        return (FpldleData) RedisUtils.getValueByKey(key).orElse(new FpldleData());
+        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DAILY);
+        return (FpldleData) RedisUtils.getHashValue(key, date);
     }
 
     @Override
@@ -203,48 +214,38 @@ public class FpldleServiceImpl implements IFpldleService {
         return data.getOpenid();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public void insertDailyResult(String openId, List<String> resultList) {
-        if (CollectionUtils.isEmpty(resultList)) {
-            return;
-        }
-        List<String> list = Lists.newArrayList();
-        resultList.forEach(o -> list.add(FpldleGuessResultEnum.getGuessResultName(Integer.parseInt(o))));
-        String result = JsonUtils.obj2json(list);
-        log.info("openId:{}, result:{}", openId, result);
-        // redis
+    public void insertDailyResult(String openId, String result) {
+        // history
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
-        String key = StringUtils.joinWith("::", "Fpldle", "Result", openId, date);
-        RedisUtils.removeCacheByKey(key);
-        Map<String, Object> cacheMap = Maps.newHashMap();
-        cacheMap.put(key, result);
-        RedisUtils.pipelineValueCache(cacheMap, 1, TimeUnit.DAYS);
+        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT, openId);
+        Map<Integer, String> map = (Map<Integer, String>) RedisUtils.getHashValue(key, date);
+        if (CollectionUtils.isEmpty(map)) {
+            map = Maps.newHashMap();
+        }
+        int tryTimes = map.size() + 1;
+        log.info("openId:{}, date:{}, tryTimes:{}, result:{}", openId, date, tryTimes, result);
+        map.put(tryTimes, result);
+        // redis
+        Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+        Map<String, Object> valueMap = Maps.newHashMap();
+        valueMap.put(date, map);
+        cacheMap.put(key, valueMap);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public List<String> getDailyResult(String openId) {
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
-        String key = StringUtils.joinWith("::", "Fpldle", "Result", openId, date);
+        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT, openId, date);
         return (List<String>) RedisUtils.getValueByKey(key).orElse(Lists.newArrayList());
     }
 
-    //    @Cacheable(cacheNames ="Fpldle")
     @Override
-    public List<String> fuzzyQueryName(String fuzzyName) {
-        String hit = StringUtils.lowerCase(fuzzyName);
-        String key = StringUtils.joinWith("::", "Fpldle", "Dictionary");
-        List<FpldleData> list = Lists.newArrayList();
-        RedisUtils.getHashByKey(key).forEach((k, v) -> list.add((FpldleData) v));
-        return list
-                .stream()
-                .map(o -> StringUtils.lowerCase(o.getWebName()))
-                .filter(o -> o.contains(hit))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public InputStream getPlayerPicture(int code) {
+    public String getPlayerPicture(int code) {
+        // 考虑加一级缓存，或者先全量写到服务器
         return this.interfaceService.getPlayerPicture(code).orElse(null);
     }
 

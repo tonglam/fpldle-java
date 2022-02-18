@@ -2,7 +2,6 @@ package com.tong.fpl;
 
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.service.IFpldleService;
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -36,29 +35,22 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"1920, 95"})
+    @CsvSource({"2122, 448"})
     void insertDailyFpldleByElement(String season, int element) {
         this.fpldleService.insertDailyFpldleByElement(season, element);
     }
 
     @ParameterizedTest
-    @CsvSource({"20220217"})
+    @CsvSource({"20220216"})
     void getDailyFpldle(String date) {
         FpldleData data = this.fpldleService.getDailyFpldle(date);
         System.out.println(1);
     }
 
     @ParameterizedTest
-    @CsvSource({"aaaa"})
-    void insertDailyResult(String openId) {
-        List<String> list = Lists.newArrayList();
-        list.add("0,1,1,2,1");
-        list.add("0,1,1,2,1");
-        list.add("1,1,1,2,1");
-        list.add("2,2,1,2,1");
-        list.add("2,1,1,2,1");
-        list.add("2,2,2,2,2");
-        this.fpldleService.insertDailyResult(openId, list);
+    @CsvSource({"aaaa, '0,1,1,2,1'"})
+    void insertDailyResult(String openId, String result) {
+        this.fpldleService.insertDailyResult(openId, result);
     }
 
     @ParameterizedTest
@@ -69,9 +61,9 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @ParameterizedTest
-    @CsvSource("sa")
-    void fuzzyQueryName(String fuzzyName) {
-        List<String> list = this.fpldleService.fuzzyQueryName(fuzzyName);
+    @CsvSource({"15749"})
+    void getPlayerPicture(int code) {
+        String result = this.fpldleService.getPlayerPicture(code);
         System.out.println(1);
     }
 

@@ -9,7 +9,6 @@ import com.tong.fpl.util.HttpUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
 
 /**
@@ -19,9 +18,9 @@ import java.util.Optional;
 public class InterfaceServiceImpl implements IInterfaceService {
 
     @Override
-    public Optional<InputStream> getPlayerPicture(int code) {
+    public Optional<String> getPlayerPicture(int code) {
         try {
-            return HttpUtils.httpGetStream(String.format(Constant.PICTURE, code));
+            return HttpUtils.httpGetBae64(String.format(Constant.PICTURE, code));
         } catch (IOException e) {
             e.printStackTrace();
         }

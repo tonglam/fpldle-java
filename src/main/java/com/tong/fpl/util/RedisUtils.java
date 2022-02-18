@@ -122,20 +122,17 @@ public class RedisUtils {
         redisTemplate.delete(keys);
     }
 
-    public static int countCacheByKeyPattern(String pattern) {
-        Set<String> keys = redisTemplate.keys(pattern);
-        if (CollectionUtils.isEmpty(keys)) {
-            return 0;
-        }
-        return keys.size();
-    }
-
     public static Optional<Object> getValueByKey(String key) {
-        return redisTemplate.hasKey(key) ? Optional.ofNullable(redisTemplate.opsForValue().get(key)) : Optional.empty();
+        return Boolean.TRUE.equals(redisTemplate.hasKey(key)) ? Optional.ofNullable(redisTemplate.opsForValue().get(key)) : Optional.empty();
     }
 
     public static Map<Object, Object> getHashByKey(String key) {
         return redisTemplate.opsForHash().entries(key);
+    }
+
+
+    public static Object getHashValue(String key, String hashKey) {
+        return redisTemplate.opsForHash().get(key, hashKey);
     }
 
     @Autowired

@@ -14,4 +14,10 @@ public class Constant {
     public static final String PICTURE = "https://resources.premierleague.com/premierleague/photos/players/110x140/p%s.png";
     public static final String CODE_SESSION = "https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code";
 
+    // redisKey
+    public static final String RESDIS_PREFIX = "Fpldle";
+    public static final String DICTIONARY = "Dictionary";
+    public static final String DAILY = "Daily";
+    public static final String RESULT = "Result";
+
 }

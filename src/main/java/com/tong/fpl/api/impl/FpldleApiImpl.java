@@ -1,12 +1,12 @@
-package com.tong.fpl.api;
+package com.tong.fpl.api.impl;
 
+import com.tong.fpl.api.IFpldleApi;
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.service.IFpldleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
 import java.util.List;
 
 /**
@@ -29,13 +29,8 @@ public class FpldleApiImpl implements IFpldleApi {
     }
 
     @Override
-    public List<String> fuzzyQueryName(String fuzzyName) {
-        return this.fpldleService.fuzzyQueryName(fuzzyName);
-    }
-
-    @Override
-    public void insertDialyResult(String openId, List<String> resultList) {
-        this.fpldleService.insertDailyResult(openId, resultList);
+    public void insertDialyResult(String openId, String result) {
+        this.fpldleService.insertDailyResult(openId, result);
     }
 
     @Override
@@ -44,7 +39,7 @@ public class FpldleApiImpl implements IFpldleApi {
     }
 
     @Override
-    public InputStream getPlayerPicture(int code) {
+    public String getPlayerPicture(int code) {
         return this.fpldleService.getPlayerPicture(code);
     }
 

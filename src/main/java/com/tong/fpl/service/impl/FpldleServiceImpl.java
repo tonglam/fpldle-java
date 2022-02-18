@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import sun.tools.jconsole.JConsole;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -247,15 +248,18 @@ public class FpldleServiceImpl implements IFpldleService {
         String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT, openId);
         Map<String, String> valueMap = (Map<String, String>) RedisUtils.getHashValue(key, date);
         if (CollectionUtils.isEmpty(valueMap)) {
+            log.info("openId:{}, date:{}, getDailyResult redis value empty",openId,date);
             return Lists.newArrayList();
         }
         IntStream.rangeClosed(1, 5).forEach(i -> {
             String result = valueMap.get(String.valueOf(i));
             if(StringUtils.isEmpty(result)){
+                log.info("openId:{}, date:{}, getDailyResult empty",openId,date);
                 return;
             }
             list.add(result);
         });
+        log.info("openId:{}, date:{}, getDailyResult size:{}",openId,date,list.size());
         return list;
     }
 

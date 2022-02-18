@@ -225,6 +225,10 @@ public class FpldleServiceImpl implements IFpldleService {
             map = Maps.newHashMap();
         }
         int tryTimes = map.size() + 1;
+        if (tryTimes > 5) {
+            log.error("openId:{}, date:{}, tryTimes:{} more than 5", openId, date, tryTimes);
+            return;
+        }
         log.info("openId:{}, date:{}, tryTimes:{}, result:{}", openId, date, tryTimes, result);
         map.put(tryTimes, result);
         // redis

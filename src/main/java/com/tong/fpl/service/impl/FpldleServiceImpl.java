@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Create by tong on 2022/2/17
@@ -241,10 +242,21 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<String> getDailyResult(String openId) {
-        String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
-        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT, openId, date);
-        return (List<String>) RedisUtils.getValueByKey(key).orElse(Lists.newArrayList());
+    public List<String> getDailyResult(String openId, String date) {
+        List<String> list = Lists.newArrayList();
+        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT, openId);
+        Map<String, String> valueMap = (Map<String, String>) RedisUtils.getHashValue(key, date);
+        if (CollectionUtils.isEmpty(valueMap)) {
+            return Lists.newArrayList();
+        }
+        IntStream.rangeClosed(1, 5).forEach(i -> {
+            String result = valueMap.get(String.valueOf(i));
+            if(StringUtils.isEmpty(result)){
+                return;
+            }
+            list.add(result);
+        });
+        return list;
     }
 
     @Override

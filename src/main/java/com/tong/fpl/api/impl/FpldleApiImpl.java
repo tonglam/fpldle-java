@@ -34,8 +34,8 @@ public class FpldleApiImpl implements IFpldleApi {
     }
 
     @Override
-    public List<String> getDailyResult(String openId) {
-        return this.fpldleService.getDailyResult(openId);
+    public List<String> getDailyResult(String openId, String date) {
+        return this.fpldleService.getDailyResult(openId, date);
     }
 
     @Override

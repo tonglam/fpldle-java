@@ -1,5 +1,6 @@
 package com.tong.fpl.util;
 
+import cn.hutool.core.codec.Base64;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -57,7 +58,7 @@ public class HttpUtils {
         return Optional.empty();
     }
 
-    public static Optional<String> httpGetBae64(String url) throws IOException {
+    public static Optional<String> httpGetBase64(String url) throws IOException {
         HttpGet httpGet = new HttpGet(url);
         try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
             if (response.getStatusLine().getStatusCode() == 200) {
@@ -68,8 +69,7 @@ public class HttpUtils {
                 bytes = new byte[size];
                 inputStream.read(bytes);
                 inputStream.close();
-                BASE64Encoder encoder = new BASE64Encoder();
-                base64String = encoder.encode(bytes);
+                base64String = Base64.encode(bytes);
                 return Optional.of(base64String);
             }
         } catch (Exception e) {

@@ -54,9 +54,9 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"aaaa"})
-    void getDailyResult(String openId) {
-        List<String> list = this.fpldleService.getDailyResult(openId);
+    @CsvSource({"o4SMe5I1MWAD5EegARCElLgDjyKQ,20220218"})
+    void getDailyResult(String openId, String date) {
+        List<String> list = this.fpldleService.getDailyResult(openId, date);
         System.out.println(1);
     }
 
@@ -64,7 +64,7 @@ public class FpldleTest extends FpldleApplicationTests {
     @CsvSource({"15749"})
     void getPlayerPicture(int code) {
         String result = this.fpldleService.getPlayerPicture(code);
-        System.out.println(1);
+        System.out.println(result);
     }
 
 }

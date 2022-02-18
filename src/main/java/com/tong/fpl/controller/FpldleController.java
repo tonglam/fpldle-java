@@ -39,8 +39,8 @@ public class FpldleController {
     }
 
     @RequestMapping("/getDailyResult")
-    public List<String> getDailyResult(@RequestParam String openId) {
-        return this.fpldleApi.getDailyResult(openId);
+    public List<String> getDailyResult(@RequestParam String openId, @RequestParam String date) {
+        return this.fpldleApi.getDailyResult(openId, date);
     }
 
     @RequestMapping("/getPlayerPicture")

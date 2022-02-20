@@ -250,7 +250,7 @@ public class FpldleServiceImpl implements IFpldleService {
             log.info("openId:{}, date:{}, getDailyResult redis value empty", openId, date);
             return Lists.newArrayList();
         }
-        IntStream.rangeClosed(1, 5).forEach(i -> {
+        IntStream.rangeClosed(1, 6).forEach(i -> {
             String result = valueMap.get(String.valueOf(i));
             if (StringUtils.isEmpty(result)) {
                 log.info("openId:{}, date:{}, getDailyResult empty", openId, date);

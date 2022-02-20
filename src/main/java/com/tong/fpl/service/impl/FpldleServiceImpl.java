@@ -226,8 +226,8 @@ public class FpldleServiceImpl implements IFpldleService {
             map = Maps.newHashMap();
         }
         int tryTimes = map.size() + 1;
-        if (tryTimes > 5) {
-            log.error("openId:{}, date:{}, tryTimes:{} more than 5", openId, date, tryTimes);
+        if (tryTimes > 6) {
+            log.error("openId:{}, date:{}, tryTimes:{} more than 6", openId, date, tryTimes);
             return;
         }
         log.info("openId:{}, date:{}, tryTimes:{}, result:{}", openId, date, tryTimes, result);
@@ -247,18 +247,18 @@ public class FpldleServiceImpl implements IFpldleService {
         String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT, openId);
         Map<String, String> valueMap = (Map<String, String>) RedisUtils.getHashValue(key, date);
         if (CollectionUtils.isEmpty(valueMap)) {
-            log.info("openId:{}, date:{}, getDailyResult redis value empty",openId,date);
+            log.info("openId:{}, date:{}, getDailyResult redis value empty", openId, date);
             return Lists.newArrayList();
         }
         IntStream.rangeClosed(1, 5).forEach(i -> {
             String result = valueMap.get(String.valueOf(i));
-            if(StringUtils.isEmpty(result)){
-                log.info("openId:{}, date:{}, getDailyResult empty",openId,date);
+            if (StringUtils.isEmpty(result)) {
+                log.info("openId:{}, date:{}, getDailyResult empty", openId, date);
                 return;
             }
             list.add(result);
         });
-        log.info("openId:{}, date:{}, getDailyResult size:{}",openId,date,list.size());
+        log.info("openId:{}, date:{}, getDailyResult size:{}", openId, date, list.size());
         return list;
     }
 

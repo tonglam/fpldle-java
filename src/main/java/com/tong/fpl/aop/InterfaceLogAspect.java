@@ -1,6 +1,6 @@
 package com.tong.fpl.aop;
 
-import com.tong.fpl.config.log.InterfaceLog;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -14,6 +14,7 @@ import java.util.UUID;
 /**
  * Create by tong on 2022/2/17
  */
+@Slf4j
 @Aspect
 @Configuration
 public class InterfaceLogAspect {
@@ -25,17 +26,17 @@ public class InterfaceLogAspect {
     @Around(value = "interfaceLog()")
     public Object around(ProceedingJoinPoint point) {
         MDC.put("uuid", UUID.randomUUID().toString());
-        InterfaceLog.info("start fetch data from server, method:{}, args:{}", point.getSignature().getName(), Arrays.toString(point.getArgs()));
+        log.info("start fetch data from server, method:{}, args:{}", point.getSignature().getName(), Arrays.toString(point.getArgs()));
         long startTime = System.currentTimeMillis();
         Object object = null;
         try {
             object = point.proceed();
         } catch (Throwable throwable) {
-            InterfaceLog.error("fetch data from server, method:{}, error:{}", point.getSignature().getName(), throwable.getMessage());
+            log.error("fetch data from server, method:{}, error:{}", point.getSignature().getName(), throwable.getMessage());
             throwable.printStackTrace();
         }
         long endTime = System.currentTimeMillis();
-        InterfaceLog.info("end fetch data from server, method:{}, time escaped:{} ms", point.getSignature().getName(), (endTime - startTime) / 1000);
+        log.info("end fetch data from server, method:{}, time escaped:{} ms", point.getSignature().getName(), (endTime - startTime) / 1000);
         return object;
     }
 

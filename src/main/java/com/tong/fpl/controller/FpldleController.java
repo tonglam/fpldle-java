@@ -3,9 +3,12 @@ package com.tong.fpl.controller;
 import com.tong.fpl.api.IFpldleApi;
 import com.tong.fpl.constant.Constant;
 import com.tong.fpl.domain.FpldleData;
+import com.tong.fpl.domain.RecordData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -44,6 +47,11 @@ public class FpldleController {
     @RequestMapping("/getPlayerPicture")
     public String getPlayerPicture(@RequestParam int code) {
         return this.fpldleApi.getPlayerPicture(code);
+    }
+
+    @RequestMapping("/getRecordList")
+    public List<RecordData> getRecordList(@RequestParam String openId) {
+        return this.fpldleApi.getRecordList(openId);
     }
 
 }

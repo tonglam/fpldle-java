@@ -22,6 +22,11 @@ public class RedisUtils {
 
     private static RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired
+    private void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
+        RedisUtils.redisTemplate = redisTemplate;
+    }
+
     public static void pipelineValueCache(Map<String, Object> cacheMap, long expire, TimeUnit timeUnit) {
         redisTemplate.executePipelined(new RedisCallback<Object>() {
             @Nullable
@@ -135,9 +140,9 @@ public class RedisUtils {
         return redisTemplate.opsForHash().get(key, hashKey);
     }
 
-    @Autowired
-    private void setRedisTemplate(RedisTemplate<String, Object> redisTemplate) {
-        RedisUtils.redisTemplate = redisTemplate;
+    public static Set<String> getKeyPattern(String pattern) {
+        return redisTemplate.keys(pattern + "*");
     }
+
 
 }

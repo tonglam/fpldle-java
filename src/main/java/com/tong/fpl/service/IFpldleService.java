@@ -2,6 +2,7 @@ package com.tong.fpl.service;
 
 
 import com.tong.fpl.domain.FpldleData;
+import com.tong.fpl.domain.RecordData;
 
 import java.util.List;
 import java.util.Map;
@@ -76,5 +77,18 @@ public interface IFpldleService {
      * @return picture.base64
      */
     String getPlayerPicture(int code);
+
+    /**
+     * 获取用户个人记录
+     *
+     * @param openId openId
+     * @return recode list
+     */
+    List<RecordData> getRecordList(String openId);
+
+    /**
+     * 每日结果统计
+     */
+    void insertDailyStatistic();
 
 }

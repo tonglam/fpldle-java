@@ -1,11 +1,15 @@
 package com.tong.fpl.service.impl;
 
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Table;
 import com.tong.fpl.constant.Constant;
 import com.tong.fpl.constant.enums.PositionEnum;
 import com.tong.fpl.constant.enums.SeasonEnum;
 import com.tong.fpl.domain.FpldleData;
+import com.tong.fpl.domain.RecordData;
+import com.tong.fpl.domain.UserStatisticData;
 import com.tong.fpl.domain.entity.PlayerEntity;
 import com.tong.fpl.domain.wechat.AuthSessionData;
 import com.tong.fpl.service.IFpldleService;
@@ -21,6 +25,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -140,7 +145,7 @@ public class FpldleServiceImpl implements IFpldleService {
                 .filter(o -> !historyList.contains(o.getCode()))
                 .collect(Collectors.toList());
         if (CollectionUtils.isEmpty(list)) {
-            log.error("fpldle filterd list is empty");
+            log.error("fpldle filter list is empty");
             return;
         }
         int index = new Random().nextInt(map.size());
@@ -266,6 +271,107 @@ public class FpldleServiceImpl implements IFpldleService {
     public String getPlayerPicture(int code) {
         // 考虑加一级缓存，或者先全量写到服务器
         return this.interfaceService.getPlayerPicture(code).orElse(null);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<RecordData> getRecordList(String openId) {
+        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT, openId);
+        Map<String, Map<String, String>> hashMap = Maps.newHashMap();
+        RedisUtils.getHashByKey(key).forEach((k, v) -> hashMap.put(k.toString(), (Map<String, String>) v));
+        return hashMap.entrySet()
+                .stream()
+                .map(o ->
+                        new RecordData()
+                                .setOpenId(openId)
+                                .setDate(o.getKey())
+                                .setResult(this.getUserDailyLastResult(o.getValue()))
+                                .setTryTimes(o.getValue().size())
+                                .setSolve(this.userDailySolve(o.getKey(), o.getValue()))
+                )
+                .sorted(Comparator.comparing(RecordData::getDate))
+                .collect(Collectors.toList());
+    }
+
+    private String getUserDailyLastResult(Map<String, String> resultMap) {
+        String result = "";
+        for (int i = 1; i < 7; i++) {
+            String roundResult = resultMap.getOrDefault(String.valueOf(i), null);
+            if (StringUtils.isNotEmpty(roundResult)) {
+                result = roundResult.replaceAll(",", "");
+            }
+        }
+        return result;
+    }
+
+    private boolean userDailySolve(String date, Map<String, String> resultMap) {
+        // fpldle
+        String fpldle = "";
+        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DAILY);
+        FpldleData data = (FpldleData) RedisUtils.getHashValue(key, date);
+        if (data != null) {
+            fpldle = data.getName();
+        }
+        // compare
+        for (int i = 1; i < 7; i++) {
+            String roundResult = resultMap.getOrDefault(String.valueOf(i), null);
+            if (StringUtils.isEmpty(roundResult)) {
+                continue;
+            }
+            roundResult = roundResult.replaceAll(",", "");
+            if (StringUtils.equalsIgnoreCase(fpldle, roundResult)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void insertDailyStatistic() {
+        String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
+        // get daily data
+        Table<String, String, RecordData> userDaliyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
+        String resultPatter = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT);
+        RedisUtils.getKeyPattern(resultPatter)
+                .forEach(resultKey -> {
+                    String openId = StringUtils.substringAfterLast(resultKey, "::");
+                    RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDaliyResultTable.put(openId, k.toString(),
+                            new RecordData()
+                                    .setResult(this.getUserDailyLastResult((Map<String, String>) v))
+                                    .setTryTimes(((Map<?, ?>) v).size())
+                                    .setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))
+                    ));
+                });
+        // user stat redis
+        String userStatKey = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.USER_STATISTIC);
+        Map<String, Map<String, Object>> userCacheMap = Maps.newHashMap();
+        // every user
+        userDaliyResultTable.rowKeySet().forEach(openId -> {
+            Map<String, Object> valueMap = Maps.newHashMap();
+            RedisUtils.getHashByKey(userStatKey).forEach((k, v) -> valueMap.put(openId, v));
+            Map<String, UserStatisticData> userStatMap = Maps.newHashMap();
+            userStatMap.put(date, this.initStatisticData(openId, userDaliyResultTable.column(openId)));
+            valueMap.put(openId, userStatMap);
+            userCacheMap.put(userStatKey, valueMap);
+        });
+//        RedisUtils.pipelineHashCache(userCacheMap, -1, null);
+        // date stat redis
+
+
+    }
+
+    private UserStatisticData initStatisticData(String openId, Map<String, RecordData> userRecordMap) {
+//        return new UserStatisticData()
+//                .setOpenId(openId)
+//                .setTryTimes()
+//                .setSolve()
+//                .setTotalTryTimes()
+//                .setTotalHitTimes()
+//                .setConsecutiveGuessDays()
+//                .setConsecutiveGuessRank()
+//                .setConsecutiveHitDays()
+//                .setConsecutiveHitRank();
+        return null;
     }
 
 }

@@ -1,6 +1,7 @@
 package com.tong.fpl.api;
 
 import com.tong.fpl.domain.FpldleData;
+import com.tong.fpl.domain.RecordData;
 
 import java.util.List;
 
@@ -48,5 +49,13 @@ public interface IFpldleApi {
      * @return picture.base64
      */
     String getPlayerPicture(int code);
+
+    /**
+     * 获取用户个人记录
+     *
+     * @param openId openId
+     * @return recode list
+     */
+    List<RecordData> getRecordList(String openId);
 
 }

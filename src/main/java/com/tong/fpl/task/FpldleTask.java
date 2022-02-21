@@ -24,4 +24,13 @@ public class FpldleTask {
         }
     }
 
+    @Scheduled(cron = "0 5 0 * * *")
+    public void dailyStatistic() {
+        try {
+            this.fpldleService.insertDailyStatistic();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

@@ -19,5 +19,7 @@ public class Constant {
     public static final String DICTIONARY = "Dictionary";
     public static final String DAILY = "Daily";
     public static final String RESULT = "Result";
+    public static final String USER_STATISTIC = "UserStatistic";
+    public static final String DATE_STATISTIC = "DateStatistic";
 
 }

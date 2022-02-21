@@ -329,7 +329,7 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @Override
     public void insertDailyStatistic() {
-        String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
+        String date = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
         // get daily data
         Table<String, String, RecordData> userDailyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
         String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);

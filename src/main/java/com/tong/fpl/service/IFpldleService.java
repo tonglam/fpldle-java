@@ -3,6 +3,7 @@ package com.tong.fpl.service;
 
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.RecordData;
+import com.tong.fpl.domain.UserInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -90,5 +91,22 @@ public interface IFpldleService {
      * 每日结果统计
      */
     void insertDailyStatistic();
+
+    /**
+     * 获取用户信息
+     *
+     * @param openId openId
+     * @return userInfo
+     */
+    UserInfo getUserInfo(String openId);
+
+    /**
+     * 新增用户信息
+     *
+     * @param openId    openId
+     * @param nickName  昵称
+     * @param avatarUrl 头像
+     */
+    void insertUserInfo(String openId, String nickName, String avatarUrl);
 
 }

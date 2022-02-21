@@ -15,11 +15,12 @@ public class Constant {
     public static final String CODE_SESSION = "https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code";
 
     // redisKey
-    public static final String RESDIS_PREFIX = "Fpldle";
+    public static final String REDIS_PREFIX = "Fpldle";
     public static final String DICTIONARY = "Dictionary";
     public static final String DAILY = "Daily";
     public static final String RESULT = "Result";
     public static final String USER_STATISTIC = "UserStatistic";
     public static final String DATE_STATISTIC = "DateStatistic";
+    public static final String USER = "User";
 
 }

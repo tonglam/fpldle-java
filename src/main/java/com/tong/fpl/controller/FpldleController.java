@@ -4,6 +4,7 @@ import com.tong.fpl.api.IFpldleApi;
 import com.tong.fpl.constant.Constant;
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.RecordData;
+import com.tong.fpl.domain.UserInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,6 +53,16 @@ public class FpldleController {
     @RequestMapping("/getRecordList")
     public List<RecordData> getRecordList(@RequestParam String openId) {
         return this.fpldleApi.getRecordList(openId);
+    }
+
+    @RequestMapping("/getUserInfo")
+    public UserInfo getUserInfo(@RequestParam String openId) {
+        return this.fpldleApi.getUserInfo(openId);
+    }
+
+    @RequestMapping("/insertUserInfo")
+    void insertUserInfo(@RequestParam String openId, @RequestParam String nickName, @RequestParam String avatarUrl) {
+        this.fpldleApi.insertUserInfo(openId, nickName, avatarUrl);
     }
 
 }

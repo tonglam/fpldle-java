@@ -2,6 +2,7 @@ package com.tong.fpl.api;
 
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.RecordData;
+import com.tong.fpl.domain.UserInfo;
 
 import java.util.List;
 
@@ -57,5 +58,22 @@ public interface IFpldleApi {
      * @return recode list
      */
     List<RecordData> getRecordList(String openId);
+
+    /**
+     * 获取用户信息
+     *
+     * @param openId openId
+     * @return userInfo
+     */
+    UserInfo getUserInfo(String openId);
+
+    /**
+     * 新增用户信息
+     *
+     * @param openId    openId
+     * @param nickName  昵称
+     * @param avatarUrl 头像
+     */
+    void insertUserInfo(String openId, String nickName, String avatarUrl);
 
 }

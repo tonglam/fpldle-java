@@ -9,6 +9,7 @@ import com.tong.fpl.constant.enums.PositionEnum;
 import com.tong.fpl.constant.enums.SeasonEnum;
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.RecordData;
+import com.tong.fpl.domain.UserInfo;
 import com.tong.fpl.domain.UserStatisticData;
 import com.tong.fpl.domain.entity.PlayerEntity;
 import com.tong.fpl.domain.wechat.AuthSessionData;
@@ -77,7 +78,7 @@ public class FpldleServiceImpl implements IFpldleService {
                     });
         });
         // redis
-        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DICTIONARY);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DICTIONARY);
         RedisUtils.removeCacheByKey(key);
         Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
         Map<String, Object> valueMap = Maps.newHashMap();
@@ -119,7 +120,7 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @Override
     public Map<String, FpldleData> getFpldleMap() {
-        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DICTIONARY);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DICTIONARY);
         Map<String, FpldleData> map = Maps.newHashMap();
         RedisUtils.getHashByKey(key).forEach((k, v) -> map.put(k.toString(), (FpldleData) v));
         return map;
@@ -133,7 +134,7 @@ public class FpldleServiceImpl implements IFpldleService {
             return;
         }
         // filter history data from redis
-        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DAILY);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
         List<Integer> historyList = Lists.newArrayList();
         RedisUtils.getHashByKey(key).forEach((k, v) -> {
             FpldleData historyData = (FpldleData) v;
@@ -173,7 +174,7 @@ public class FpldleServiceImpl implements IFpldleService {
             return;
         }
         // filter history data from redis
-        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DAILY);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
         List<Integer> historyList = Lists.newArrayList();
         RedisUtils.getHashByKey(key).forEach((k, v) -> {
             FpldleData historyData = (FpldleData) v;
@@ -205,7 +206,7 @@ public class FpldleServiceImpl implements IFpldleService {
         if (date.contains("-")) {
             date = date.replaceAll("-", "");
         }
-        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DAILY);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
         return (FpldleData) RedisUtils.getHashValue(key, date);
     }
 
@@ -225,7 +226,7 @@ public class FpldleServiceImpl implements IFpldleService {
     public void insertDailyResult(String openId, String result) {
         // history
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
-        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT, openId);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
         Map<Integer, String> map = (Map<Integer, String>) RedisUtils.getHashValue(key, date);
         if (CollectionUtils.isEmpty(map)) {
             map = Maps.newHashMap();
@@ -249,7 +250,7 @@ public class FpldleServiceImpl implements IFpldleService {
     @Override
     public List<String> getDailyResult(String openId, String date) {
         List<String> list = Lists.newArrayList();
-        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT, openId);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
         Map<String, String> valueMap = (Map<String, String>) RedisUtils.getHashValue(key, date);
         if (CollectionUtils.isEmpty(valueMap)) {
             log.info("openId:{}, date:{}, getDailyResult redis value empty", openId, date);
@@ -276,7 +277,7 @@ public class FpldleServiceImpl implements IFpldleService {
     @SuppressWarnings("unchecked")
     @Override
     public List<RecordData> getRecordList(String openId) {
-        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT, openId);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
         Map<String, Map<String, String>> hashMap = Maps.newHashMap();
         RedisUtils.getHashByKey(key).forEach((k, v) -> hashMap.put(k.toString(), (Map<String, String>) v));
         return hashMap.entrySet()
@@ -307,7 +308,7 @@ public class FpldleServiceImpl implements IFpldleService {
     private boolean userDailySolve(String date, Map<String, String> resultMap) {
         // fpldle
         String fpldle = "";
-        String key = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.DAILY);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
         FpldleData data = (FpldleData) RedisUtils.getHashValue(key, date);
         if (data != null) {
             fpldle = data.getName();
@@ -330,12 +331,12 @@ public class FpldleServiceImpl implements IFpldleService {
     public void insertDailyStatistic() {
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
         // get daily data
-        Table<String, String, RecordData> userDaliyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
-        String resultPatter = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.RESULT);
+        Table<String, String, RecordData> userDailyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
+        String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
         RedisUtils.getKeyPattern(resultPatter)
                 .forEach(resultKey -> {
                     String openId = StringUtils.substringAfterLast(resultKey, "::");
-                    RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDaliyResultTable.put(openId, k.toString(),
+                    RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDailyResultTable.put(openId, k.toString(),
                             new RecordData()
                                     .setResult(this.getUserDailyLastResult((Map<String, String>) v))
                                     .setTryTimes(((Map<?, ?>) v).size())
@@ -343,14 +344,14 @@ public class FpldleServiceImpl implements IFpldleService {
                     ));
                 });
         // user stat redis
-        String userStatKey = StringUtils.joinWith("::", Constant.RESDIS_PREFIX, Constant.USER_STATISTIC);
+        String userStatKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
         Map<String, Map<String, Object>> userCacheMap = Maps.newHashMap();
         // every user
-        userDaliyResultTable.rowKeySet().forEach(openId -> {
+        userDailyResultTable.rowKeySet().forEach(openId -> {
             Map<String, Object> valueMap = Maps.newHashMap();
             RedisUtils.getHashByKey(userStatKey).forEach((k, v) -> valueMap.put(openId, v));
             Map<String, UserStatisticData> userStatMap = Maps.newHashMap();
-            userStatMap.put(date, this.initStatisticData(openId, userDaliyResultTable.column(openId)));
+            userStatMap.put(date, this.initStatisticData(openId, userDailyResultTable.column(openId)));
             valueMap.put(openId, userStatMap);
             userCacheMap.put(userStatKey, valueMap);
         });
@@ -372,6 +373,28 @@ public class FpldleServiceImpl implements IFpldleService {
 //                .setConsecutiveHitDays()
 //                .setConsecutiveHitRank();
         return null;
+    }
+
+    @Override
+    public UserInfo getUserInfo(String openId) {
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER);
+        return (UserInfo) RedisUtils.getHashValue(key, openId);
+    }
+
+    @Override
+    public void insertUserInfo(String openId, String nickName, String avatarUrl) {
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER);
+        Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+        Map<String, Object> valueMap = Maps.newHashMap();
+        RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), v));
+        valueMap.put(openId,
+                new UserInfo()
+                        .setOpenId(openId)
+                        .setNickName(nickName)
+                        .setAvatarUrl(avatarUrl)
+        );
+        cacheMap.put(key, valueMap);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
 
 }

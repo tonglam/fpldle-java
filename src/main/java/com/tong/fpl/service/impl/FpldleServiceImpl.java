@@ -329,14 +329,14 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @Override
     public void insertDailyStatistic() {
-        String date = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
+        String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
         // get daily data
-        Table<String, String, RecordData> userDailyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
+        Table<String, String, RecordData> userDaliyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
         String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
         RedisUtils.getKeyPattern(resultPatter)
                 .forEach(resultKey -> {
                     String openId = StringUtils.substringAfterLast(resultKey, "::");
-                    RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDailyResultTable.put(openId, k.toString(),
+                    RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDaliyResultTable.put(openId, k.toString(),
                             new RecordData()
                                     .setResult(this.getUserDailyLastResult((Map<String, String>) v))
                                     .setTryTimes(((Map<?, ?>) v).size())
@@ -347,14 +347,15 @@ public class FpldleServiceImpl implements IFpldleService {
         String userStatKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
         Map<String, Map<String, Object>> userCacheMap = Maps.newHashMap();
         // every user
-        userDailyResultTable.rowKeySet().forEach(openId -> {
+        userDaliyResultTable.rowKeySet().forEach(openId -> {
             Map<String, Object> valueMap = Maps.newHashMap();
             RedisUtils.getHashByKey(userStatKey).forEach((k, v) -> valueMap.put(openId, v));
             Map<String, UserStatisticData> userStatMap = Maps.newHashMap();
-            userStatMap.put(date, this.initStatisticData(openId, userDailyResultTable.column(openId)));
+            userStatMap.put(date, this.initStatisticData(openId, userDaliyResultTable.row(openId)));
             valueMap.put(openId, userStatMap);
             userCacheMap.put(userStatKey, valueMap);
         });
+        System.out.println(1);
 //        RedisUtils.pipelineHashCache(userCacheMap, -1, null);
         // date stat redis
 
@@ -362,10 +363,18 @@ public class FpldleServiceImpl implements IFpldleService {
     }
 
     private UserStatisticData initStatisticData(String openId, Map<String, RecordData> userRecordMap) {
+        String lastDate = userRecordMap.keySet()
+                .stream()
+                .sorted(Comparator.naturalOrder())
+                .findFirst()
+                .orElse("");
+        RecordData lastData = userRecordMap.get(lastDate);
+        System.out.println(1);
+
 //        return new UserStatisticData()
 //                .setOpenId(openId)
-//                .setTryTimes()
-//                .setSolve()
+//                .setTryTimes(lastData.getTryTimes())
+//                .setSolve(lastData.isSolve())
 //                .setTotalTryTimes()
 //                .setTotalHitTimes()
 //                .setConsecutiveGuessDays()
@@ -373,12 +382,6 @@ public class FpldleServiceImpl implements IFpldleService {
 //                .setConsecutiveHitDays()
 //                .setConsecutiveHitRank();
         return null;
-    }
-
-    @Override
-    public UserInfo getUserInfo(String openId) {
-        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER);
-        return (UserInfo) RedisUtils.getHashValue(key, openId);
     }
 
     @Override

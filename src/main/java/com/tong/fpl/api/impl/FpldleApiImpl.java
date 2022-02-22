@@ -4,7 +4,6 @@ import com.tong.fpl.api.IFpldleApi;
 import com.tong.fpl.constant.Constant;
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.RecordData;
-import com.tong.fpl.domain.UserInfo;
 import com.tong.fpl.service.IFpldleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,12 +52,6 @@ public class FpldleApiImpl implements IFpldleApi {
         return this.fpldleService.getRecordList(openId);
     }
 
-    @Override
-    public UserInfo getUserInfo(String openId) {
-        return this.fpldleService.getUserInfo(openId);
-    }
-
-    @Override
     public void insertUserInfo(String openId, String nickName, String avatarUrl) {
         this.fpldleService.insertUserInfo(openId, nickName, avatarUrl);
     }

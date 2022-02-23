@@ -24,6 +24,14 @@ public interface IFpldleApi {
      * @param code 小程序用户请求code
      * @return openId
      */
+    String getWechatOpenId(String code);
+
+    /**
+     * 获取微信小程序的用户openId
+     *
+     * @param code 小程序用户请求code
+     * @return openId
+     */
     String getWechatUserOpenId(String code);
 
     /**

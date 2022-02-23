@@ -211,6 +211,17 @@ public class FpldleServiceImpl implements IFpldleService {
     }
 
     @Override
+    public String getWechatOpenId(String code) {
+        String appId = "wxb105fb69e8d9a10e";
+        String secretId = "66544f4be5cfae2637c3ac6c999d1f4a";
+        AuthSessionData data = this.interfaceService.getAuthSessionInfo(appId, secretId, code).orElse(null);
+        if (data == null) {
+            return "";
+        }
+        return data.getOpenid();
+    }
+
+    @Override
     public String getWechatUserOpenId(String code) {
         String appId = "wx4b37f3f2c2c7f169";
         String secretId = "d7e8060219867c056f314fa177b0e109";

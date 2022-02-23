@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -78,6 +79,12 @@ public class FpldleTest extends FpldleApplicationTests {
     @Test
     void insertDailyStatistic() {
         this.fpldleService.insertDailyStatistic();
+    }
+
+    @Test
+    void getHistoryFpldle() {
+        LinkedHashMap<String, FpldleData> map = this.fpldleService.getHistoryFpldle();
+        System.out.println(1);
     }
 
 }

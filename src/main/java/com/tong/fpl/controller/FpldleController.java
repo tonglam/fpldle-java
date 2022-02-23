@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -57,6 +58,11 @@ public class FpldleController {
     @RequestMapping("/insertUserInfo")
     void insertUserInfo(@RequestParam String openId, @RequestParam String nickName, @RequestParam String avatarUrl) {
         this.fpldleApi.insertUserInfo(openId, nickName, avatarUrl);
+    }
+
+    @RequestMapping("/getHistoryFpldle")
+    public LinkedHashMap<String, FpldleData> getHistoryFpldle() {
+        return this.fpldleApi.getHistoryFpldle();
     }
 
 }

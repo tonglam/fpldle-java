@@ -26,10 +26,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -398,6 +395,19 @@ public class FpldleServiceImpl implements IFpldleService {
         );
         cacheMap.put(key, valueMap);
         RedisUtils.pipelineHashCache(cacheMap, -1, null);
+    }
+
+    @Override
+    public LinkedHashMap<String, FpldleData> getHistoryFpldle() {
+        Map<String, FpldleData> valueMap = Maps.newHashMap();
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
+        RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), (FpldleData) v));
+        LinkedHashMap<String, FpldleData> map = Maps.newLinkedHashMap();
+        valueMap.keySet()
+                .stream()
+                .sorted(Comparator.naturalOrder())
+                .forEach(date -> map.put(date, valueMap.get(date)));
+        return map;
     }
 
 }

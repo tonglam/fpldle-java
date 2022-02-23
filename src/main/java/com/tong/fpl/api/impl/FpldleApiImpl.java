@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -52,8 +53,14 @@ public class FpldleApiImpl implements IFpldleApi {
         return this.fpldleService.getRecordList(openId);
     }
 
+    @Override
     public void insertUserInfo(String openId, String nickName, String avatarUrl) {
         this.fpldleService.insertUserInfo(openId, nickName, avatarUrl);
+    }
+
+    @Override
+    public LinkedHashMap<String, FpldleData> getHistoryFpldle() {
+        return this.fpldleService.getHistoryFpldle();
     }
 
 }

@@ -3,6 +3,7 @@ package com.tong.fpl.api;
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.RecordData;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -66,5 +67,12 @@ public interface IFpldleApi {
      * @param avatarUrl 头像
      */
     void insertUserInfo(String openId, String nickName, String avatarUrl);
+
+    /**
+     * 获取往期数据
+     *
+     * @return list
+     */
+    LinkedHashMap<String, FpldleData> getHistoryFpldle();
 
 }

@@ -1,9 +1,9 @@
 package com.tong.fpl.api;
 
 import com.tong.fpl.domain.FpldleData;
+import com.tong.fpl.domain.FpldleHistoryData;
 import com.tong.fpl.domain.RecordData;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -81,6 +81,6 @@ public interface IFpldleApi {
      *
      * @return list
      */
-    LinkedHashMap<String, FpldleData> getHistoryFpldle();
+    List<FpldleHistoryData> getHistoryFpldle();
 
 }

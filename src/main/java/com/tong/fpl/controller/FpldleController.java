@@ -3,6 +3,7 @@ package com.tong.fpl.controller;
 import com.tong.fpl.api.IFpldleApi;
 import com.tong.fpl.constant.Constant;
 import com.tong.fpl.domain.FpldleData;
+import com.tong.fpl.domain.FpldleHistoryData;
 import com.tong.fpl.domain.RecordData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -66,7 +66,7 @@ public class FpldleController {
     }
 
     @RequestMapping("/getHistoryFpldle")
-    public LinkedHashMap<String, FpldleData> getHistoryFpldle() {
+    public List<FpldleHistoryData> getHistoryFpldle() {
         return this.fpldleApi.getHistoryFpldle();
     }
 

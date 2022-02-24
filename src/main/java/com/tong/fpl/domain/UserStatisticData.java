@@ -13,11 +13,10 @@ public class UserStatisticData {
     private String openId;
     private int tryTimes;
     private boolean solve;
+    private int totalGuessDays;
     private int totalTryTimes;
     private int totalHitTimes;
     private int consecutiveGuessDays;
-    private int consecutiveGuessRank;
     private int consecutiveHitDays;
-    private int consecutiveHitRank;
 
 }

@@ -7,15 +7,13 @@ import com.google.common.collect.Table;
 import com.tong.fpl.constant.Constant;
 import com.tong.fpl.constant.enums.PositionEnum;
 import com.tong.fpl.constant.enums.SeasonEnum;
-import com.tong.fpl.domain.FpldleData;
-import com.tong.fpl.domain.RecordData;
-import com.tong.fpl.domain.UserInfo;
-import com.tong.fpl.domain.UserStatisticData;
+import com.tong.fpl.domain.*;
 import com.tong.fpl.domain.entity.PlayerEntity;
 import com.tong.fpl.domain.wechat.AuthSessionData;
 import com.tong.fpl.service.IFpldleService;
 import com.tong.fpl.service.IInterfaceService;
 import com.tong.fpl.service.IRedisCacheService;
+import com.tong.fpl.util.CommonUtils;
 import com.tong.fpl.util.RedisUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -336,8 +334,7 @@ public class FpldleServiceImpl implements IFpldleService {
     }
 
     @Override
-    public void insertDailyStatistic() {
-        String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
+    public void insertUserStatistic() {
         // get daily data
         Table<String, String, RecordData> userDaliyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
         String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
@@ -346,6 +343,7 @@ public class FpldleServiceImpl implements IFpldleService {
                     String openId = StringUtils.substringAfterLast(resultKey, "::");
                     RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDaliyResultTable.put(openId, k.toString(),
                             new RecordData()
+                                    .setDate(k.toString())
                                     .setResult(this.getUserDailyLastResult((Map<String, String>) v))
                                     .setTryTimes(((Map<?, ?>) v).size())
                                     .setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))
@@ -354,41 +352,128 @@ public class FpldleServiceImpl implements IFpldleService {
         // user stat redis
         String userStatKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
         Map<String, Map<String, Object>> userCacheMap = Maps.newHashMap();
+        Map<String, Object> userValueMap = Maps.newHashMap();
         // every user
         userDaliyResultTable.rowKeySet().forEach(openId -> {
-            Map<String, Object> valueMap = Maps.newHashMap();
-            RedisUtils.getHashByKey(userStatKey).forEach((k, v) -> valueMap.put(openId, v));
+            RedisUtils.getHashByKey(userStatKey).forEach((k, v) -> userValueMap.put(openId, v));
             Map<String, UserStatisticData> userStatMap = Maps.newHashMap();
-            userStatMap.put(date, this.initStatisticData(openId, userDaliyResultTable.row(openId)));
-            valueMap.put(openId, userStatMap);
-            userCacheMap.put(userStatKey, valueMap);
+            // every date
+            for (String statDate :
+                    userDaliyResultTable.columnKeySet()) {
+                userStatMap.put(statDate, this.initUserStatisticData(openId, userDaliyResultTable.row(openId)));
+                userValueMap.put(openId, userStatMap);
+            }
         });
-        System.out.println(1);
-//        RedisUtils.pipelineHashCache(userCacheMap, -1, null);
-        // date stat redis
-
-
+        userCacheMap.put(userStatKey, userValueMap);
+        RedisUtils.pipelineHashCache(userCacheMap, -1, null);
     }
 
-    private UserStatisticData initStatisticData(String openId, Map<String, RecordData> userRecordMap) {
+    private UserStatisticData initUserStatisticData(String openId, Map<String, RecordData> userRecordMap) {
+        List<RecordData> recordList = new ArrayList<>(userRecordMap.values());
         String lastDate = userRecordMap.keySet()
                 .stream()
-                .sorted(Comparator.naturalOrder())
-                .findFirst()
+                .max(Comparator.naturalOrder())
                 .orElse("");
         RecordData lastData = userRecordMap.get(lastDate);
-        System.out.println(1);
+        return new UserStatisticData()
+                .setOpenId(openId)
+                .setTryTimes(lastData.getTryTimes())
+                .setTotalGuessDays(recordList.size())
+                .setSolve(lastData.isSolve())
+                .setTotalTryTimes(
+                        recordList
+                                .stream()
+                                .mapToInt(RecordData::getTryTimes)
+                                .sum()
+                )
+                .setTotalHitTimes(
+                        recordList
+                                .stream()
+                                .mapToInt(o -> {
+                                    if (o.isSolve()) {
+                                        return 1;
+                                    }
+                                    return 0;
+                                })
+                                .sum()
+                )
+                .setConsecutiveGuessDays(this.calcConsecutiveGuessDays(lastDate, recordList
+                        .stream()
+                        .map(RecordData::getDate)
+                        .collect(Collectors.toList())
+                ))
+                .setConsecutiveHitDays(this.calcConsecutiveHitDays(lastDate, recordList
+                        .stream()
+                        .filter(RecordData::isSolve)
+                        .map(RecordData::getDate)
+                        .collect(Collectors.toList())
+                ));
+    }
 
-//        return new UserStatisticData()
-//                .setOpenId(openId)
-//                .setTryTimes(lastData.getTryTimes())
-//                .setSolve(lastData.isSolve())
-//                .setTotalTryTimes()
-//                .setTotalHitTimes()
-//                .setConsecutiveGuessDays()
-//                .setConsecutiveGuessRank()
-//                .setConsecutiveHitDays()
-//                .setConsecutiveHitRank();
+    private int calcConsecutiveGuessDays(String lastDate, List<String> guessDaysList) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(Constant.SHORTDAY);
+        int consecutiveGuessDays = 0;
+        for (int i = 0; i < guessDaysList.size(); i++) {
+            String nextDate = LocalDate.parse(CommonUtils.getDateFromShortDay(lastDate)).minusDays(i).format(dateTimeFormatter);
+            if (guessDaysList.contains(nextDate)) {
+                consecutiveGuessDays++;
+            } else {
+                break;
+            }
+        }
+        return consecutiveGuessDays;
+    }
+
+    private int calcConsecutiveHitDays(String lastDate, List<String> hitDaysList) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(Constant.SHORTDAY);
+        int consecutiveHitDays = 0;
+        for (int i = 0; i < hitDaysList.size(); i++) {
+            String nextDate = LocalDate.parse(CommonUtils.getDateFromShortDay(lastDate)).minusDays(i).format(dateTimeFormatter);
+            if (hitDaysList.contains(nextDate)) {
+                consecutiveHitDays++;
+            } else {
+                break;
+            }
+        }
+        return consecutiveHitDays;
+    }
+
+    @Override
+    public void insertDateStatistic() {
+        // get data
+        Table<String, String, RecordData> dateResultTable = HashBasedTable.create(); // date -> openId -> map(tryTimes -> result)
+        String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
+        RedisUtils.getKeyPattern(resultPatter)
+                .forEach(resultKey -> {
+                    String openId = StringUtils.substringAfterLast(resultKey, "::");
+                    RedisUtils.getHashByKey(resultKey).forEach((k, v) -> dateResultTable.put(k.toString(), openId,
+                            new RecordData()
+                                    .setDate(k.toString())
+                                    .setResult(this.getUserDailyLastResult((Map<String, String>) v))
+                                    .setTryTimes(((Map<?, ?>) v).size())
+                                    .setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))
+                    ));
+                });
+        // user stat redis
+        String dateStatKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
+        Map<String, Map<String, Object>> dateCacheMap = Maps.newHashMap();
+        Map<String, Object> dateValueMap = Maps.newHashMap();
+        // every user
+        dateResultTable.rowKeySet().forEach(date -> {
+            RedisUtils.getHashByKey(dateStatKey).forEach((k, v) -> dateValueMap.put(date, v));
+            Map<String, DateStatisticData> userStatMap = Maps.newHashMap();
+            // every date
+            for (String statDate :
+                    dateResultTable.columnKeySet()) {
+                userStatMap.put(statDate, this.initDateStatisticData(date, dateResultTable.row(date)));
+                dateValueMap.put(date, userStatMap);
+            }
+        });
+        dateCacheMap.put(dateStatKey, dateValueMap);
+//        RedisUtils.pipelineHashCache(dateCacheMap, -1, null);
+    }
+
+    private DateStatisticData initDateStatisticData(String date, Map<String, RecordData> dateRecordMap) {
         return null;
     }
 
@@ -409,16 +494,31 @@ public class FpldleServiceImpl implements IFpldleService {
     }
 
     @Override
-    public LinkedHashMap<String, FpldleData> getHistoryFpldle() {
+    public List<FpldleHistoryData> getHistoryFpldle() {
         Map<String, FpldleData> valueMap = Maps.newHashMap();
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
         RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), (FpldleData) v));
-        LinkedHashMap<String, FpldleData> map = Maps.newLinkedHashMap();
-        valueMap.keySet()
+        return valueMap.keySet()
                 .stream()
-                .sorted(Comparator.naturalOrder())
-                .forEach(date -> map.put(date, valueMap.get(date)));
-        return map;
+                .map(date -> {
+                    FpldleData data = valueMap.get(date);
+                    if (data == null) {
+                        return null;
+                    }
+                    return new FpldleHistoryData()
+                            .setDate(date)
+                            .setElement(data.getElement())
+                            .setCode(data.getCode())
+                            .setName(data.getName())
+                            .setFullName(data.getFullName())
+                            .setSeason(data.getSeason())
+                            .setPosition(data.getPosition())
+                            .setTeamName(data.getTeamName())
+                            .setTeamShortName(data.getTeamShortName());
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(FpldleHistoryData::getDate).reversed())
+                .collect(Collectors.toList());
     }
 
 }

@@ -3,6 +3,7 @@ package com.tong.fpl.api.impl;
 import com.tong.fpl.api.IFpldleApi;
 import com.tong.fpl.constant.Constant;
 import com.tong.fpl.domain.FpldleData;
+import com.tong.fpl.domain.FpldleHistoryData;
 import com.tong.fpl.domain.RecordData;
 import com.tong.fpl.service.IFpldleService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -64,7 +64,7 @@ public class FpldleApiImpl implements IFpldleApi {
     }
 
     @Override
-    public LinkedHashMap<String, FpldleData> getHistoryFpldle() {
+    public List<FpldleHistoryData> getHistoryFpldle() {
         return this.fpldleService.getHistoryFpldle();
     }
 

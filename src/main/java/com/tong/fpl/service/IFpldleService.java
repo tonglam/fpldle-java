@@ -2,9 +2,9 @@ package com.tong.fpl.service;
 
 
 import com.tong.fpl.domain.FpldleData;
+import com.tong.fpl.domain.FpldleHistoryData;
 import com.tong.fpl.domain.RecordData;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -96,9 +96,14 @@ public interface IFpldleService {
     List<RecordData> getRecordList(String openId);
 
     /**
-     * 每日结果统计
+     * 用户结果统计
      */
-    void insertDailyStatistic();
+    void insertUserStatistic();
+
+    /**
+     * 用户结果统计
+     */
+    void insertDateStatistic();
 
     /**
      * 新增用户信息
@@ -114,6 +119,6 @@ public interface IFpldleService {
      *
      * @return list
      */
-    LinkedHashMap<String, FpldleData> getHistoryFpldle();
+    List<FpldleHistoryData> getHistoryFpldle();
 
 }

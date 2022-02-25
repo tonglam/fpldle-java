@@ -10,12 +10,11 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class DateStatisticData {
 
-    private int totalGuessUser;
-    private int totalHitUser;
+    private String date;
+    private int totalUsers;
+    private int totalHitUsers;
     private String userHitRate;
-    private int totalGuessTimes;
     private int totalTryTimes;
-    private double averageGuessTimes;
     private double averageTryTimes;
     private double averageHitTimes;
 

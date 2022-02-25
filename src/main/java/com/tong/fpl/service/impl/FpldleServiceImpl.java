@@ -1,5 +1,6 @@
 package com.tong.fpl.service.impl;
 
+import cn.hutool.core.util.NumberUtil;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -350,22 +351,22 @@ public class FpldleServiceImpl implements IFpldleService {
                     ));
                 });
         // user stat redis
-        String userStatKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
-        Map<String, Map<String, Object>> userCacheMap = Maps.newHashMap();
-        Map<String, Object> userValueMap = Maps.newHashMap();
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
+        Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+        Map<String, Object> valueMap = Maps.newHashMap();
         // every user
         userDaliyResultTable.rowKeySet().forEach(openId -> {
-            RedisUtils.getHashByKey(userStatKey).forEach((k, v) -> userValueMap.put(openId, v));
-            Map<String, UserStatisticData> userStatMap = Maps.newHashMap();
+            RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(openId, v));
+            Map<String, UserStatisticData> statMap = Maps.newHashMap();
             // every date
             for (String statDate :
                     userDaliyResultTable.columnKeySet()) {
-                userStatMap.put(statDate, this.initUserStatisticData(openId, userDaliyResultTable.row(openId)));
-                userValueMap.put(openId, userStatMap);
+                statMap.put(statDate, this.initUserStatisticData(openId, userDaliyResultTable.row(openId)));
+                valueMap.put(openId, statMap);
             }
         });
-        userCacheMap.put(userStatKey, userValueMap);
-        RedisUtils.pipelineHashCache(userCacheMap, -1, null);
+        cacheMap.put(key, valueMap);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
 
     private UserStatisticData initUserStatisticData(String openId, Map<String, RecordData> userRecordMap) {
@@ -440,6 +441,7 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @Override
     public void insertDateStatistic() {
+
         // get data
         Table<String, String, RecordData> dateResultTable = HashBasedTable.create(); // date -> openId -> map(tryTimes -> result)
         String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
@@ -454,27 +456,51 @@ public class FpldleServiceImpl implements IFpldleService {
                                     .setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))
                     ));
                 });
-        // user stat redis
-        String dateStatKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
-        Map<String, Map<String, Object>> dateCacheMap = Maps.newHashMap();
-        Map<String, Object> dateValueMap = Maps.newHashMap();
-        // every user
+        // date stat redis
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DATE_STATISTIC);
+        Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+        Map<String, Object> valueMap = Maps.newHashMap();
+        // every date
         dateResultTable.rowKeySet().forEach(date -> {
-            RedisUtils.getHashByKey(dateStatKey).forEach((k, v) -> dateValueMap.put(date, v));
-            Map<String, DateStatisticData> userStatMap = Maps.newHashMap();
-            // every date
-            for (String statDate :
-                    dateResultTable.columnKeySet()) {
-                userStatMap.put(statDate, this.initDateStatisticData(date, dateResultTable.row(date)));
-                dateValueMap.put(date, userStatMap);
-            }
+            RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(date, v));
+            valueMap.put(date, this.initDateStatisticData(date, dateResultTable.row(date)));
         });
-        dateCacheMap.put(dateStatKey, dateValueMap);
-//        RedisUtils.pipelineHashCache(dateCacheMap, -1, null);
+        cacheMap.put(key, valueMap);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
 
     private DateStatisticData initDateStatisticData(String date, Map<String, RecordData> dateRecordMap) {
-        return null;
+        List<RecordData> recordList = new ArrayList<>(dateRecordMap.values());
+        DateStatisticData data = new DateStatisticData()
+                .setDate(date)
+                .setTotalUsers(recordList.size())
+                .setTotalHitUsers(
+                        recordList
+                                .stream()
+                                .mapToInt(o -> {
+                                    if (o.isSolve()) {
+                                        return 1;
+                                    }
+                                    return 0;
+                                })
+                                .sum()
+                )
+                .setTotalTryTimes(
+                        recordList
+                                .stream()
+                                .mapToInt(RecordData::getTryTimes)
+                                .sum()
+                );
+        data
+                .setUserHitRate(NumberUtil.formatPercent(NumberUtil.div(data.getTotalHitUsers(), data.getTotalUsers()), 1))
+                .setAverageTryTimes(NumberUtil.div(data.getTotalTryTimes(), data.getTotalUsers(), 2))
+                .setAverageHitTimes(NumberUtil.div(recordList
+                                .stream()
+                                .filter(RecordData::isSolve)
+                                .mapToInt(RecordData::getTryTimes)
+                                .sum()
+                        , data.getTotalHitUsers(), 2));
+        return data;
     }
 
     @Override

@@ -82,7 +82,7 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @Test
-    void insertDateStatistic(String date) {
+    void insertDateStatistic() {
         this.fpldleService.insertDateStatistic();
     }
 

@@ -27,7 +27,7 @@ public class FpldleController {
 
     @RequestMapping("/getServiceDate")
     public String getServiceDate() {
-        return LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
+        return LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY)).substring(4, 8);
     }
 
     @RequestMapping("/getDailyFpldle")

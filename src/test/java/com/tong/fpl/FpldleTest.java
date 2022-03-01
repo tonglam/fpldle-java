@@ -63,6 +63,13 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @ParameterizedTest
+    @CsvSource({"odU8S4_aCx_9XHvPS-FXSCS7BkWw, 20220301"})
+    void getVerifyList(String openId, String date) {
+        List<Integer> list = this.fpldleService.getVerifyList(openId, date);
+        System.out.println(1);
+    }
+
+    @ParameterizedTest
     @CsvSource({"15749"})
     void getPlayerPicture(int code) {
         String result = this.fpldleService.getPlayerPicture(code);

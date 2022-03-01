@@ -52,6 +52,15 @@ public interface IFpldleApi {
     List<String> getDailyResult(String openId);
 
     /**
+     * 获取指定日期验证结果
+     *
+     * @param openId openId
+     * @param date   日期
+     * @return 验证结果
+     */
+    List<Integer> getVerifyList(String openId, String date);
+
+    /**
      * 获取球员照片
      *
      * @param code player.code

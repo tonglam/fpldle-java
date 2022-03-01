@@ -49,6 +49,11 @@ public class FpldleApiImpl implements IFpldleApi {
     }
 
     @Override
+    public List<Integer> getVerifyList(String openId, String date) {
+        return this.fpldleService.getVerifyList(openId, date);
+    }
+
+    @Override
     public String getPlayerPicture(int code) {
         return this.fpldleService.getPlayerPicture(code);
     }

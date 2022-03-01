@@ -334,15 +334,16 @@ public class FpldleServiceImpl implements IFpldleService {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void insertUserStatistic() {
         // get daily data
-        Table<String, String, RecordData> userDaliyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
+        Table<String, String, RecordData> userDailyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
         String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
         RedisUtils.getKeyPattern(resultPatter)
                 .forEach(resultKey -> {
                     String openId = StringUtils.substringAfterLast(resultKey, "::");
-                    RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDaliyResultTable.put(openId, k.toString(),
+                    RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDailyResultTable.put(openId, k.toString(),
                             new RecordData()
                                     .setDate(k.toString())
                                     .setResult(this.getUserDailyLastResult((Map<String, String>) v))
@@ -355,13 +356,13 @@ public class FpldleServiceImpl implements IFpldleService {
         Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
         Map<String, Object> valueMap = Maps.newHashMap();
         // every user
-        userDaliyResultTable.rowKeySet().forEach(openId -> {
+        userDailyResultTable.rowKeySet().forEach(openId -> {
             RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(openId, v));
             Map<String, UserStatisticData> statMap = Maps.newHashMap();
             // every date
             for (String statDate :
-                    userDaliyResultTable.columnKeySet()) {
-                statMap.put(statDate, this.initUserStatisticData(openId, userDaliyResultTable.row(openId)));
+                    userDailyResultTable.columnKeySet()) {
+                statMap.put(statDate, this.initUserStatisticData(openId, userDailyResultTable.row(openId)));
                 valueMap.put(openId, statMap);
             }
         });
@@ -439,6 +440,7 @@ public class FpldleServiceImpl implements IFpldleService {
         return consecutiveHitDays;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void insertDateStatistic() {
 
@@ -521,11 +523,13 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @Override
     public List<FpldleHistoryData> getHistoryFpldle() {
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
         Map<String, FpldleData> valueMap = Maps.newHashMap();
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
         RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), (FpldleData) v));
         return valueMap.keySet()
                 .stream()
+                .filter(o -> !StringUtils.equals(today, o))
                 .map(date -> {
                     FpldleData data = valueMap.get(date);
                     if (data == null) {

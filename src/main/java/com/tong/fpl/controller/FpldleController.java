@@ -25,6 +25,11 @@ public class FpldleController {
 
     private final IFpldleApi fpldleApi;
 
+    @RequestMapping("/getServiceDate")
+    public String getServiceDate() {
+        return LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
+    }
+
     @RequestMapping("/getDailyFpldle")
     public FpldleData getDailyFpldle() {
         return this.fpldleApi.getDailyFpldle(LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY)));

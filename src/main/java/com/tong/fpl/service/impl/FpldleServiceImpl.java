@@ -328,26 +328,6 @@ public class FpldleServiceImpl implements IFpldleService {
     }
 
     @Override
-    public List<Integer> getVerifyList(String openId, String date) {
-        String reslutKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
-        Map<String, String> valueMap = (Map<String, String>) RedisUtils.getHashValue(reslutKey, date);
-        if (CollectionUtils.isEmpty(valueMap)) {
-            log.error("openId:{}, date:{}, getDailyResult redis value empty", openId, date);
-            return Lists.newArrayList();
-        }
-        FpldleData data = this.getDailyFpldle(date);
-        if (data == null) {
-            log.error("date:{}, get daily fpldle empty", date);
-        }
-        return this.getVerifyListFromResult(data.getName(), valueMap.values());
-    }
-
-    private List<Integer> getVerifyListFromResult(String name, Collection<String> values) {
-        List<Integer> list = Lists.newArrayList();
-        return list;
-    }
-
-    @Override
     public String getPlayerPicture(int code) {
         // 考虑加一级缓存，或者先全量写到服务器
         return this.interfaceService.getPlayerPicture(code).orElse(null);

@@ -63,9 +63,9 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"odU8S4_aCx_9XHvPS-FXSCS7BkWw, 20220301"})
-    void getVerifyList(String openId, String date) {
-        List<Integer> list = this.fpldleService.getVerifyList(openId, date);
+    @CsvSource({"odU8S4wtZB4WEWI69hwuRUvbMAFI, 20220302"})
+    void getDateVerifyList(String openId, String date) {
+        List<List<Integer>> list = this.fpldleService.getDateVerifyList(openId, date);
         System.out.println(1);
     }
 

@@ -80,13 +80,13 @@ public interface IFpldleService {
     List<String> getDailyResult(String openId, String date);
 
     /**
-     * 获取指定日期验证结果
+     * 获取指定日期用户验证结果
      *
      * @param openId openId
-     * @param date   日期
+     * @param date   date
      * @return 验证结果
      */
-    List<Integer> getVerifyList(String openId, String date);
+    List<List<Integer>> getDateVerifyList(String openId, String date);
 
     /**
      * 获取球员照片
@@ -110,7 +110,7 @@ public interface IFpldleService {
     void insertUserStatistic();
 
     /**
-     * 日期结果统计
+     * 用户结果统计
      */
     void insertDateStatistic();
 
@@ -129,5 +129,6 @@ public interface IFpldleService {
      * @return list
      */
     List<FpldleHistoryData> getHistoryFpldle();
+
 
 }

@@ -55,9 +55,9 @@ public class FpldleController {
         return this.fpldleApi.getDailyResult(openId);
     }
 
-    @RequestMapping("/getVerifyList")
-    public List<Integer> getVerifyList(@RequestParam String openId, @RequestParam String date) {
-        return this.fpldleApi.getVerifyList(openId, date);
+    @RequestMapping("/getDateVerifyList")
+    public List<List<Integer>> getDateVerifyList(@RequestParam String openId, @RequestParam String date) {
+        return this.fpldleApi.getDateVerifyList(openId, date);
     }
 
     @RequestMapping("/getPlayerPicture")

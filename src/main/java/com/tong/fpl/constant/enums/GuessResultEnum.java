@@ -8,9 +8,9 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public enum FpldleGuessResultEnum {
+public enum GuessResultEnum {
 
-    WRONG(0), ORDER(1), CORRECT(2);
+    WAITING(-1), WRONG(0), ORDER(1), CORRECT(2);
 
     private final int result;
 

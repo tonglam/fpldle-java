@@ -52,13 +52,13 @@ public interface IFpldleApi {
     List<String> getDailyResult(String openId);
 
     /**
-     * 获取指定日期验证结果
+     * 获取指定日期用户验证结果
      *
      * @param openId openId
-     * @param date   日期
+     * @param date   date
      * @return 验证结果
      */
-    List<Integer> getVerifyList(String openId, String date);
+    List<List<Integer>> getDateVerifyList(String openId, String date);
 
     /**
      * 获取球员照片

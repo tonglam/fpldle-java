@@ -6,6 +6,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
 import com.tong.fpl.constant.Constant;
+import com.tong.fpl.constant.enums.GuessResultEnum;
 import com.tong.fpl.constant.enums.PositionEnum;
 import com.tong.fpl.constant.enums.SeasonEnum;
 import com.tong.fpl.domain.*;
@@ -272,6 +273,57 @@ public class FpldleServiceImpl implements IFpldleService {
             list.add(result);
         });
         log.info("openId:{}, date:{}, getDailyResult size:{}", openId, date, list.size());
+        return list;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<List<Integer>> getDateVerifyList(String openId, String date) {
+        List<List<Integer>> list = Lists.newArrayList();
+        // result
+        String resultKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
+        Map<String, String> valueMap = (Map<String, String>) RedisUtils.getHashValue(resultKey, date);
+        if (CollectionUtils.isEmpty(valueMap)) {
+            log.info("openId:{}, date:{}, getDailyResult redis value empty", openId, date);
+            return Lists.newArrayList();
+        }
+        // daily
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
+        FpldleData data = (FpldleData) RedisUtils.getHashValue(key, date);
+        if (data == null || StringUtils.isEmpty(data.getName())) {
+            log.info("date:{}, daily fpldle empty", date);
+            return Lists.newArrayList();
+        }
+        String fpldle = data.getName();
+        char[] fpldleList = fpldle.toCharArray();
+        // verify
+        valueMap.values().forEach(result -> {
+            List<Integer> roundList = Lists.newArrayList();
+            String[] roundResult = result.split(",");
+            for (int i = 0; i < roundResult.length; i++) {
+                String letter = roundResult[i];
+                if (StringUtils.equals(letter, Character.toString(fpldleList[i]))) {
+                    roundList.add(GuessResultEnum.CORRECT.getResult());
+                } else if (fpldle.contains(letter)) {
+                    roundList.add(GuessResultEnum.ORDER.getResult());
+                } else {
+                    roundList.add(GuessResultEnum.WRONG.getResult());
+                }
+            }
+            list.add(roundList);
+        });
+        // fill
+        int fillSize = Constant.maxTryTimes - list.size();
+        if (fillSize == 0) {
+            return list;
+        }
+        List<Integer> fillList = Lists.newArrayList();
+        for (int i = 0; i < Constant.rowLetters; i++) {
+            fillList.add(-1);
+        }
+        for (int i = 0; i < fillSize; i++) {
+            list.add(fillList);
+        }
         return list;
     }
 

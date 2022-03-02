@@ -23,4 +23,8 @@ public class Constant {
     public static final String DATE_STATISTIC = "DateStatistic";
     public static final String USER = "User";
 
+    // operation
+    public static final int rowLetters = 5;
+    public static final int maxTryTimes = 6;
+
 }

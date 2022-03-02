@@ -80,6 +80,15 @@ public interface IFpldleService {
     List<String> getDailyResult(String openId, String date);
 
     /**
+     * 获取指定日期用户验证结果
+     *
+     * @param openId openId
+     * @param date   date
+     * @return 验证结果
+     */
+    List<List<Integer>> getDateVerifyList(String openId, String date);
+
+    /**
      * 获取球员照片
      *
      * @param code player.code

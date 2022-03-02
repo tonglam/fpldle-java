@@ -12,6 +12,7 @@ import com.tong.fpl.constant.enums.SeasonEnum;
 import com.tong.fpl.domain.*;
 import com.tong.fpl.domain.entity.PlayerEntity;
 import com.tong.fpl.domain.wechat.AuthSessionData;
+import com.tong.fpl.domain.wechat.AuthTokenData;
 import com.tong.fpl.service.IFpldleService;
 import com.tong.fpl.service.IInterfaceService;
 import com.tong.fpl.service.IRedisCacheService;
@@ -220,13 +221,20 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @Override
     public String getWechatUserOpenId(String code) {
-        String appId = "wx4b37f3f2c2c7f169";
-        String secretId = "d7e8060219867c056f314fa177b0e109";
-        AuthSessionData data = this.interfaceService.getAuthSessionInfo(appId, secretId, code).orElse(null);
+        AuthSessionData data = this.interfaceService.getAuthSessionInfo(Constant.APP_ID, Constant.SECRET_ID, code).orElse(null);
         if (data == null) {
             return "";
         }
         return data.getOpenid();
+    }
+
+    @Override
+    public String getWechatAccessToken() {
+        AuthTokenData data = this.interfaceService.getAuthTokenInfo(Constant.APP_ID, Constant.SECRET_ID).orElse(null);
+        if (data == null) {
+            return "";
+        }
+        return data.getAccessToken();
     }
 
     @SuppressWarnings("unchecked")
@@ -313,12 +321,12 @@ public class FpldleServiceImpl implements IFpldleService {
             list.add(roundList);
         });
         // fill
-        int fillSize = Constant.maxTryTimes - list.size();
+        int fillSize = Constant.MAX_TRY_TIMES - list.size();
         if (fillSize == 0) {
             return list;
         }
         List<Integer> fillList = Lists.newArrayList();
-        for (int i = 0; i < Constant.rowLetters; i++) {
+        for (int i = 0; i < Constant.ROW_LETTERS; i++) {
             fillList.add(-1);
         }
         for (int i = 0; i < fillSize; i++) {

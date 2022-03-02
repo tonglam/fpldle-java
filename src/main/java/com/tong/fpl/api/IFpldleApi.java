@@ -28,6 +28,13 @@ public interface IFpldleApi {
     String getWechatOpenId(String code);
 
     /**
+     * 获取小程序登录token
+     *
+     * @return token
+     */
+    String getWechatAccessToken();
+
+    /**
      * 获取微信小程序的用户openId
      *
      * @param code 小程序用户请求code
@@ -41,7 +48,7 @@ public interface IFpldleApi {
      * @param openId 用户openId
      * @param result 结果
      */
-    void insertDialyResult(String openId, String result);
+    void insertDailyResult(String openId, String result);
 
     /**
      * 获取每日结果列表

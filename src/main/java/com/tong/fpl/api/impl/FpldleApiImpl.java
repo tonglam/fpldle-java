@@ -34,12 +34,17 @@ public class FpldleApiImpl implements IFpldleApi {
     }
 
     @Override
+    public String getWechatAccessToken() {
+        return this.fpldleService.getWechatAccessToken();
+    }
+
+    @Override
     public String getWechatUserOpenId(String code) {
         return this.fpldleService.getWechatUserOpenId(code);
     }
 
     @Override
-    public void insertDialyResult(String openId, String result) {
+    public void insertDailyResult(String openId, String result) {
         this.fpldleService.insertDailyResult(openId, result);
     }
 

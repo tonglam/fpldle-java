@@ -40,6 +40,11 @@ public class FpldleController {
         return this.fpldleApi.getWechatOpenId(code);
     }
 
+    @RequestMapping("/getWechatAccessToken")
+    public String getWechatAccessToken() {
+        return this.fpldleApi.getWechatAccessToken();
+    }
+
     @RequestMapping("/getWechatUserOpenId")
     public String getWechatUserOpenId(@RequestParam String code) {
         return this.fpldleApi.getWechatUserOpenId(code);
@@ -47,7 +52,7 @@ public class FpldleController {
 
     @RequestMapping("/insertDailyResult")
     public void insertDailyResult(@RequestParam String openId, @RequestParam String result) {
-        this.fpldleApi.insertDialyResult(openId, result);
+        this.fpldleApi.insertDailyResult(openId, result);
     }
 
     @RequestMapping("/getDailyResult")

@@ -63,6 +63,13 @@ public interface IFpldleService {
     String getWechatUserOpenId(String code);
 
     /**
+     * 获取小程序登录token
+     *
+     * @return token
+     */
+    String getWechatAccessToken();
+
+    /**
      * 插入每日结果
      *
      * @param openId 用户openId

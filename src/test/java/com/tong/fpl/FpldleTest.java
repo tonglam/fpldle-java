@@ -99,4 +99,10 @@ public class FpldleTest extends FpldleApplicationTests {
         System.out.println(1);
     }
 
+    @Test
+    void getWechatAccessToken() {
+        String token = this.fpldleService.getWechatAccessToken();
+        System.out.println(1);
+    }
+
 }

@@ -6,6 +6,7 @@ import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.FpldleHistoryData;
 import com.tong.fpl.domain.RecordData;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -52,7 +53,7 @@ public class FpldleController {
 
     @RequestMapping("/insertDailyResult")
     public void insertDailyResult(@RequestParam String openId, @RequestParam String result) {
-        if (result.contains("select") || result.contains("from") || result.contains("limit") || result.contains("union")) {
+        if (StringUtils.containsAnyIgnoreCase(result, "select", "from", "limit", "count", "union", "delete", "update", "truncate", "drop")) {
             return;
         }
         this.fpldleApi.insertDailyResult(openId, result);

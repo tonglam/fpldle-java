@@ -42,7 +42,7 @@ public class FpldleController {
 
     @RequestMapping("/getWechatOpenId")
     public String getWechatOpenId(@RequestParam String code) {
-        return this.fpldleApi.getWechatUserOpenId(code);
+        return this.fpldleApi.getWechatOpenId(code);
     }
 
     @RequestMapping("/getWechatUserOpenId")

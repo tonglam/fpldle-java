@@ -24,7 +24,6 @@ public class RedisCacheServiceImpl implements IRedisCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-
     @Override
     public Map<String, String> getTeamNameMap(String season) {
         Map<String, String> map = Maps.newHashMap();

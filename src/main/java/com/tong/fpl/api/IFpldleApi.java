@@ -20,14 +20,6 @@ public interface IFpldleApi {
     FpldleData getDailyFpldle(String date);
 
     /**
-     * 获取微信小程序的用户openId
-     *
-     * @param code 小程序用户请求code
-     * @return openId
-     */
-    String getWechatOpenId(String code);
-
-    /**
      * 获取小程序登录token
      *
      * @return token

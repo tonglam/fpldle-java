@@ -35,11 +35,6 @@ public class FpldleController {
         return this.fpldleApi.getDailyFpldle(LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY)));
     }
 
-    @RequestMapping("/getWechatOpenId")
-    public String getWechatOpenId(@RequestParam String code) {
-        return this.fpldleApi.getWechatOpenId(code);
-    }
-
     @RequestMapping("/getWechatAccessToken")
     public String getWechatAccessToken() {
         return this.fpldleApi.getWechatAccessToken();

@@ -11,5 +11,4 @@ public class CommonUtils {
         return StringUtils.joinWith("-", shortDate.substring(0, 4), shortDate.substring(4, 6), shortDate.substring(6, 8));
     }
 
-
 }

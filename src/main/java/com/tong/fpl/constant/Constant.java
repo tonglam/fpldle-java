@@ -24,10 +24,6 @@ public class Constant {
     public static final String DATE_STATISTIC = "DateStatistic";
     public static final String USER = "User";
 
-    // operation
-    public static final int ROW_LETTERS = 5;
-    public static final int MAX_TRY_TIMES = 6;
-
     // wechat
     public static final String APP_ID = "wx4b37f3f2c2c7f169";
     public static final String SECRET_ID = "d7e8060219867c056f314fa177b0e109";

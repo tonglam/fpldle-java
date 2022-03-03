@@ -1,6 +1,5 @@
 package com.tong.fpl.service;
 
-
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.FpldleHistoryData;
 import com.tong.fpl.domain.RecordData;
@@ -45,14 +44,6 @@ public interface IFpldleService {
      * @return data
      */
     FpldleData getDailyFpldle(String date);
-
-    /**
-     * 获取微信小程序的用户openId
-     *
-     * @param code 小程序用户请求code
-     * @return openId
-     */
-    String getWechatOpenId(String code);
 
     /**
      * 获取微信小程序的用户openId

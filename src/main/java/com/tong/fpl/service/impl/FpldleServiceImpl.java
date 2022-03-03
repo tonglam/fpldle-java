@@ -209,17 +209,6 @@ public class FpldleServiceImpl implements IFpldleService {
     }
 
     @Override
-    public String getWechatOpenId(String code) {
-        String appId = "wxb105fb69e8d9a10e";
-        String secretId = "66544f4be5cfae2637c3ac6c999d1f4a";
-        AuthSessionData data = this.interfaceService.getAuthSessionInfo(appId, secretId, code).orElse(null);
-        if (data == null) {
-            return "";
-        }
-        return data.getOpenid();
-    }
-
-    @Override
     public String getWechatUserOpenId(String code) {
         AuthSessionData data = this.interfaceService.getAuthSessionInfo(Constant.APP_ID, Constant.SECRET_ID, code).orElse(null);
         if (data == null) {
@@ -320,18 +309,6 @@ public class FpldleServiceImpl implements IFpldleService {
             }
             list.add(roundList);
         });
-        // fill
-        int fillSize = Constant.MAX_TRY_TIMES - list.size();
-        if (fillSize == 0) {
-            return list;
-        }
-        List<Integer> fillList = Lists.newArrayList();
-        for (int i = 0; i < Constant.ROW_LETTERS; i++) {
-            fillList.add(-1);
-        }
-        for (int i = 0; i < fillSize; i++) {
-            list.add(fillList);
-        }
         return list;
     }
 

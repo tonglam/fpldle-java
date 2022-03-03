@@ -18,5 +18,4 @@ public interface IRedisCacheService {
 
     Map<String, PlayerSummaryEntity> getPlayerSummaryMap(String season);
 
-
 }

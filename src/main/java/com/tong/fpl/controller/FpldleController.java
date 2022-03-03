@@ -40,6 +40,11 @@ public class FpldleController {
         return this.fpldleApi.getWechatAccessToken();
     }
 
+    @RequestMapping("/getWechatOpenId")
+    public String getWechatOpenId(@RequestParam String code) {
+        return this.fpldleApi.getWechatUserOpenId(code);
+    }
+
     @RequestMapping("/getWechatUserOpenId")
     public String getWechatUserOpenId(@RequestParam String code) {
         return this.fpldleApi.getWechatUserOpenId(code);

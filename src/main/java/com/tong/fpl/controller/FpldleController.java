@@ -52,6 +52,9 @@ public class FpldleController {
 
     @RequestMapping("/insertDailyResult")
     public void insertDailyResult(@RequestParam String openId, @RequestParam String result) {
+        if (result.contains("select") || result.contains("from") || result.contains("limit") || result.contains("union")) {
+            return;
+        }
         this.fpldleApi.insertDailyResult(openId, result);
     }
 

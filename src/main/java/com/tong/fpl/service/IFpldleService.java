@@ -45,6 +45,8 @@ public interface IFpldleService {
      */
     FpldleData getDailyFpldle(String date);
 
+    String getWechatOpenId(String code);
+
     /**
      * 获取微信小程序的用户openId
      *

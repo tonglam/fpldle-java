@@ -95,14 +95,6 @@ public interface IFpldleService {
     String getPlayerPicture(int code);
 
     /**
-     * 获取用户个人记录
-     *
-     * @param openId openId
-     * @return recode list
-     */
-    List<RecordData> getRecordList(String openId);
-
-    /**
      * 用户结果统计
      */
     void insertUserStatistic();
@@ -128,5 +120,12 @@ public interface IFpldleService {
      */
     List<FpldleHistoryData> getHistoryFpldle();
 
+    /**
+     * 获取用户个人记录
+     *
+     * @param openId openId
+     * @return recode list
+     */
+    List<RecordData> getRecordList(String openId);
 
 }

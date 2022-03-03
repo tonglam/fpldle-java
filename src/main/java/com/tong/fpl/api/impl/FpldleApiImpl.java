@@ -59,11 +59,6 @@ public class FpldleApiImpl implements IFpldleApi {
     }
 
     @Override
-    public List<RecordData> getRecordList(String openId) {
-        return this.fpldleService.getRecordList(openId);
-    }
-
-    @Override
     public void insertUserInfo(String openId, String nickName, String avatarUrl) {
         this.fpldleService.insertUserInfo(openId, nickName, avatarUrl);
     }
@@ -71,6 +66,11 @@ public class FpldleApiImpl implements IFpldleApi {
     @Override
     public List<FpldleHistoryData> getHistoryFpldle() {
         return this.fpldleService.getHistoryFpldle();
+    }
+
+    @Override
+    public List<RecordData> getRecordList(String openId) {
+        return this.fpldleService.getRecordList(openId);
     }
 
 }

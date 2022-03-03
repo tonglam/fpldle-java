@@ -65,11 +65,6 @@ public class FpldleController {
         return this.fpldleApi.getPlayerPicture(code);
     }
 
-    @RequestMapping("/getRecordList")
-    public List<RecordData> getRecordList(@RequestParam String openId) {
-        return this.fpldleApi.getRecordList(openId);
-    }
-
     @RequestMapping("/insertUserInfo")
     void insertUserInfo(@RequestParam String openId, @RequestParam String nickName, @RequestParam String avatarUrl) {
         this.fpldleApi.insertUserInfo(openId, nickName, avatarUrl);
@@ -78,6 +73,11 @@ public class FpldleController {
     @RequestMapping("/getHistoryFpldle")
     public List<FpldleHistoryData> getHistoryFpldle() {
         return this.fpldleApi.getHistoryFpldle();
+    }
+
+    @RequestMapping("/getRecordList")
+    public List<RecordData> getRecordList(@RequestParam String openId) {
+        return this.fpldleApi.getRecordList(openId);
     }
 
 }

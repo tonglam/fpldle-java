@@ -68,14 +68,6 @@ public interface IFpldleApi {
     String getPlayerPicture(int code);
 
     /**
-     * 获取用户个人记录
-     *
-     * @param openId openId
-     * @return recode list
-     */
-    List<RecordData> getRecordList(String openId);
-
-    /**
      * 新增用户信息
      *
      * @param openId    openId
@@ -90,5 +82,13 @@ public interface IFpldleApi {
      * @return list
      */
     List<FpldleHistoryData> getHistoryFpldle();
+
+    /**
+     * 获取用户个人记录
+     *
+     * @param openId openId
+     * @return recode list
+     */
+    List<RecordData> getRecordList(String openId);
 
 }

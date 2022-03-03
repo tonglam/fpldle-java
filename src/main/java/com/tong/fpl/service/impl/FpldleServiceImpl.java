@@ -50,30 +50,16 @@ public class FpldleServiceImpl implements IFpldleService {
             Map<String, PlayerEntity> playerMap = this.redisCacheService.getPlayerMap(season);
             Map<String, String> teamNameMap = this.redisCacheService.getTeamNameMap(season);
             Map<String, String> teamShortNameMap = this.redisCacheService.getTeamShortNameMap(season);
-            this.redisCacheService.getPlayerSummaryMap(season).values()
-                    .stream()
-                    .filter(o -> o.getEvent() == 1 && o.getSelected() > 100000)
-                    .forEach(o -> {
-                        int element = o.getElement();
-                        PlayerEntity playerEntity = playerMap.getOrDefault(String.valueOf(element), null);
-                        if (playerEntity == null || StringUtils.isEmpty(playerEntity.getWebName())) {
-                            return;
-                        }
-                        String webName = this.getFpldleWebName(playerEntity.getWebName());
-                        String fpldle = this.getFpldleName(webName);
-                        map.put(fpldle,
-                                new FpldleData()
-                                        .setElement(o.getElement())
-                                        .setCode(o.getCode())
-                                        .setName(fpldle)
-                                        .setWebName(webName)
-                                        .setFullName(StringUtils.joinWith(" ", playerEntity.getFirstName(), playerEntity.getSecondName()))
-                                        .setSeason(season)
-                                        .setPosition(PositionEnum.getNameFromElementType(playerEntity.getElementType()))
-                                        .setTeamName(teamNameMap.getOrDefault(String.valueOf(o.getTeamId()), ""))
-                                        .setTeamShortName(teamShortNameMap.getOrDefault(String.valueOf(o.getTeamId()), ""))
-                        );
-                    });
+            this.redisCacheService.getPlayerSummaryMap(season).values().stream().filter(o -> o.getEvent() == 1 && o.getSelected() > 100000).forEach(o -> {
+                int element = o.getElement();
+                PlayerEntity playerEntity = playerMap.getOrDefault(String.valueOf(element), null);
+                if (playerEntity == null || StringUtils.isEmpty(playerEntity.getWebName())) {
+                    return;
+                }
+                String webName = this.getFpldleWebName(playerEntity.getWebName());
+                String fpldle = this.getFpldleName(webName);
+                map.put(fpldle, new FpldleData().setElement(o.getElement()).setCode(o.getCode()).setName(fpldle).setWebName(webName).setFullName(StringUtils.joinWith(" ", playerEntity.getFirstName(), playerEntity.getSecondName())).setSeason(season).setPosition(PositionEnum.getNameFromElementType(playerEntity.getElementType())).setTeamName(teamNameMap.getOrDefault(String.valueOf(o.getTeamId()), "")).setTeamShortName(teamShortNameMap.getOrDefault(String.valueOf(o.getTeamId()), "")));
+            });
         });
         // redis
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DICTIONARY);
@@ -87,22 +73,7 @@ public class FpldleServiceImpl implements IFpldleService {
     }
 
     private String getFpldleWebName(String webName) {
-        return webName
-                .replaceAll(" ", "")
-                .replaceAll("'", "")
-                .replaceAll("-", "")
-                .replaceAll("é", "e")
-                .replaceAll("í", "i")
-                .replaceAll("ü", "u")
-                .replaceAll("Ö", "o")
-                .replaceAll("ć", "c")
-                .replaceAll("à", "a")
-                .replaceAll("ó", "o")
-                .replaceAll("ï", "i")
-                .replaceAll("ø", "o")
-                .replaceAll("ö", "o")
-                .replaceAll("á", "a")
-                .replaceAll("ß", "ss");
+        return webName.replaceAll(" ", "").replaceAll("'", "").replaceAll("-", "").replaceAll("é", "e").replaceAll("í", "i").replaceAll("ü", "u").replaceAll("Ö", "o").replaceAll("ć", "c").replaceAll("à", "a").replaceAll("ó", "o").replaceAll("ï", "i").replaceAll("ø", "o").replaceAll("ö", "o").replaceAll("á", "a").replaceAll("ß", "ss");
     }
 
     private String getFpldleName(String webName) {
@@ -139,10 +110,7 @@ public class FpldleServiceImpl implements IFpldleService {
             historyList.add(historyData.getCode());
         });
         // choose from filtered list
-        List<FpldleData> list = map.values()
-                .stream()
-                .filter(o -> !historyList.contains(o.getCode()))
-                .collect(Collectors.toList());
+        List<FpldleData> list = map.values().stream().filter(o -> !historyList.contains(o.getCode())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(list)) {
             log.error("fpldle filter list is empty");
             return;
@@ -178,12 +146,7 @@ public class FpldleServiceImpl implements IFpldleService {
             FpldleData historyData = (FpldleData) v;
             historyList.add(historyData.getCode());
         });
-        FpldleData data = map.values()
-                .stream()
-                .filter(o -> !historyList.contains(o.getCode()))
-                .filter(o -> StringUtils.equals(season, o.getSeason()) && element == o.getElement())
-                .findFirst()
-                .orElse(null);
+        FpldleData data = map.values().stream().filter(o -> !historyList.contains(o.getCode())).filter(o -> StringUtils.equals(season, o.getSeason()) && element == o.getElement()).findFirst().orElse(null);
         if (data == null) {
             log.error("fpldle data is empty or was used");
             return;
@@ -320,74 +283,14 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<RecordData> getRecordList(String openId) {
-        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
-        Map<String, Map<String, String>> hashMap = Maps.newHashMap();
-        RedisUtils.getHashByKey(key).forEach((k, v) -> hashMap.put(k.toString(), (Map<String, String>) v));
-        return hashMap.entrySet()
-                .stream()
-                .map(o ->
-                        new RecordData()
-                                .setOpenId(openId)
-                                .setDate(o.getKey())
-                                .setResult(this.getUserDailyLastResult(o.getValue()))
-                                .setTryTimes(o.getValue().size())
-                                .setSolve(this.userDailySolve(o.getKey(), o.getValue()))
-                )
-                .sorted(Comparator.comparing(RecordData::getDate))
-                .collect(Collectors.toList());
-    }
-
-    private String getUserDailyLastResult(Map<String, String> resultMap) {
-        String result = "";
-        for (int i = 1; i < 7; i++) {
-            String roundResult = resultMap.getOrDefault(String.valueOf(i), null);
-            if (StringUtils.isNotEmpty(roundResult)) {
-                result = roundResult.replaceAll(",", "");
-            }
-        }
-        return result;
-    }
-
-    private boolean userDailySolve(String date, Map<String, String> resultMap) {
-        // fpldle
-        String fpldle = "";
-        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
-        FpldleData data = (FpldleData) RedisUtils.getHashValue(key, date);
-        if (data != null) {
-            fpldle = data.getName();
-        }
-        // compare
-        for (int i = 1; i < 7; i++) {
-            String roundResult = resultMap.getOrDefault(String.valueOf(i), null);
-            if (StringUtils.isEmpty(roundResult)) {
-                continue;
-            }
-            roundResult = roundResult.replaceAll(",", "");
-            if (StringUtils.equalsIgnoreCase(fpldle, roundResult)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
     public void insertUserStatistic() {
         // get daily data
         Table<String, String, RecordData> userDailyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
         String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
-        RedisUtils.getKeyPattern(resultPatter)
-                .forEach(resultKey -> {
-                    String openId = StringUtils.substringAfterLast(resultKey, "::");
-                    RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDailyResultTable.put(openId, k.toString(),
-                            new RecordData()
-                                    .setDate(k.toString())
-                                    .setResult(this.getUserDailyLastResult((Map<String, String>) v))
-                                    .setTryTimes(((Map<?, ?>) v).size())
-                                    .setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))
-                    ));
-                });
+        RedisUtils.getKeyPattern(resultPatter).forEach(resultKey -> {
+            String openId = StringUtils.substringAfterLast(resultKey, "::");
+            RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDailyResultTable.put(openId, k.toString(), new RecordData().setDate(k.toString()).setResult(this.getUserDailyLastResult((Map<String, String>) v)).setTryTimes(((Map<?, ?>) v).size()).setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))));
+        });
         // user stat redis
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
         Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
@@ -397,8 +300,7 @@ public class FpldleServiceImpl implements IFpldleService {
             RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(openId, v));
             Map<String, UserStatisticData> statMap = Maps.newHashMap();
             // every date
-            for (String statDate :
-                    userDailyResultTable.columnKeySet()) {
+            for (String statDate : userDailyResultTable.columnKeySet()) {
                 statMap.put(statDate, this.initUserStatisticData(openId, userDailyResultTable.row(openId)));
                 valueMap.put(openId, statMap);
             }
@@ -409,44 +311,14 @@ public class FpldleServiceImpl implements IFpldleService {
 
     private UserStatisticData initUserStatisticData(String openId, Map<String, RecordData> userRecordMap) {
         List<RecordData> recordList = new ArrayList<>(userRecordMap.values());
-        String lastDate = userRecordMap.keySet()
-                .stream()
-                .max(Comparator.naturalOrder())
-                .orElse("");
+        String lastDate = userRecordMap.keySet().stream().max(Comparator.naturalOrder()).orElse("");
         RecordData lastData = userRecordMap.get(lastDate);
-        return new UserStatisticData()
-                .setOpenId(openId)
-                .setTryTimes(lastData.getTryTimes())
-                .setTotalGuessDays(recordList.size())
-                .setSolve(lastData.isSolve())
-                .setTotalTryTimes(
-                        recordList
-                                .stream()
-                                .mapToInt(RecordData::getTryTimes)
-                                .sum()
-                )
-                .setTotalHitTimes(
-                        recordList
-                                .stream()
-                                .mapToInt(o -> {
-                                    if (o.isSolve()) {
-                                        return 1;
-                                    }
-                                    return 0;
-                                })
-                                .sum()
-                )
-                .setConsecutiveGuessDays(this.calcConsecutiveGuessDays(lastDate, recordList
-                        .stream()
-                        .map(RecordData::getDate)
-                        .collect(Collectors.toList())
-                ))
-                .setConsecutiveHitDays(this.calcConsecutiveHitDays(lastDate, recordList
-                        .stream()
-                        .filter(RecordData::isSolve)
-                        .map(RecordData::getDate)
-                        .collect(Collectors.toList())
-                ));
+        return new UserStatisticData().setOpenId(openId).setTryTimes(lastData.getTryTimes()).setTotalGuessDays(recordList.size()).setSolve(lastData.isSolve()).setTotalTryTimes(recordList.stream().mapToInt(RecordData::getTryTimes).sum()).setTotalHitTimes(recordList.stream().mapToInt(o -> {
+            if (o.isSolve()) {
+                return 1;
+            }
+            return 0;
+        }).sum()).setConsecutiveGuessDays(this.calcConsecutiveGuessDays(lastDate, recordList.stream().map(RecordData::getDate).collect(Collectors.toList()))).setConsecutiveHitDays(this.calcConsecutiveHitDays(lastDate, recordList.stream().filter(RecordData::isSolve).map(RecordData::getDate).collect(Collectors.toList())));
     }
 
     private int calcConsecutiveGuessDays(String lastDate, List<String> guessDaysList) {
@@ -484,17 +356,10 @@ public class FpldleServiceImpl implements IFpldleService {
         // get data
         Table<String, String, RecordData> dateResultTable = HashBasedTable.create(); // date -> openId -> map(tryTimes -> result)
         String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
-        RedisUtils.getKeyPattern(resultPatter)
-                .forEach(resultKey -> {
-                    String openId = StringUtils.substringAfterLast(resultKey, "::");
-                    RedisUtils.getHashByKey(resultKey).forEach((k, v) -> dateResultTable.put(k.toString(), openId,
-                            new RecordData()
-                                    .setDate(k.toString())
-                                    .setResult(this.getUserDailyLastResult((Map<String, String>) v))
-                                    .setTryTimes(((Map<?, ?>) v).size())
-                                    .setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))
-                    ));
-                });
+        RedisUtils.getKeyPattern(resultPatter).forEach(resultKey -> {
+            String openId = StringUtils.substringAfterLast(resultKey, "::");
+            RedisUtils.getHashByKey(resultKey).forEach((k, v) -> dateResultTable.put(k.toString(), openId, new RecordData().setDate(k.toString()).setResult(this.getUserDailyLastResult((Map<String, String>) v)).setTryTimes(((Map<?, ?>) v).size()).setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))));
+        });
         // date stat redis
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DATE_STATISTIC);
         Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
@@ -510,35 +375,13 @@ public class FpldleServiceImpl implements IFpldleService {
 
     private DateStatisticData initDateStatisticData(String date, Map<String, RecordData> dateRecordMap) {
         List<RecordData> recordList = new ArrayList<>(dateRecordMap.values());
-        DateStatisticData data = new DateStatisticData()
-                .setDate(date)
-                .setTotalUsers(recordList.size())
-                .setTotalHitUsers(
-                        recordList
-                                .stream()
-                                .mapToInt(o -> {
-                                    if (o.isSolve()) {
-                                        return 1;
-                                    }
-                                    return 0;
-                                })
-                                .sum()
-                )
-                .setTotalTryTimes(
-                        recordList
-                                .stream()
-                                .mapToInt(RecordData::getTryTimes)
-                                .sum()
-                );
-        data
-                .setUserHitRate(NumberUtil.formatPercent(NumberUtil.div(data.getTotalHitUsers(), data.getTotalUsers()), 1))
-                .setAverageTryTimes(NumberUtil.div(data.getTotalTryTimes(), data.getTotalUsers(), 2))
-                .setAverageHitTimes(NumberUtil.div(recordList
-                                .stream()
-                                .filter(RecordData::isSolve)
-                                .mapToInt(RecordData::getTryTimes)
-                                .sum()
-                        , data.getTotalHitUsers(), 2));
+        DateStatisticData data = new DateStatisticData().setDate(date).setTotalUsers(recordList.size()).setTotalHitUsers(recordList.stream().mapToInt(o -> {
+            if (o.isSolve()) {
+                return 1;
+            }
+            return 0;
+        }).sum()).setTotalTryTimes(recordList.stream().mapToInt(RecordData::getTryTimes).sum());
+        data.setUserHitRate(NumberUtil.formatPercent(NumberUtil.div(data.getTotalHitUsers(), data.getTotalUsers()), 1)).setAverageTryTimes(NumberUtil.div(data.getTotalTryTimes(), data.getTotalUsers(), 2)).setAverageHitTimes(NumberUtil.div(recordList.stream().filter(RecordData::isSolve).mapToInt(RecordData::getTryTimes).sum(), data.getTotalHitUsers(), 2));
         return data;
     }
 
@@ -548,12 +391,7 @@ public class FpldleServiceImpl implements IFpldleService {
         Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
         Map<String, Object> valueMap = Maps.newHashMap();
         RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), v));
-        valueMap.put(openId,
-                new UserInfo()
-                        .setOpenId(openId)
-                        .setNickName(nickName)
-                        .setAvatarUrl(avatarUrl)
-        );
+        valueMap.put(openId, new UserInfo().setOpenId(openId).setNickName(nickName).setAvatarUrl(avatarUrl));
         cacheMap.put(key, valueMap);
         RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
@@ -564,28 +402,56 @@ public class FpldleServiceImpl implements IFpldleService {
         Map<String, FpldleData> valueMap = Maps.newHashMap();
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
         RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), (FpldleData) v));
-        return valueMap.keySet()
-                .stream()
-                .filter(o -> !StringUtils.equals(today, o))
-                .map(date -> {
-                    FpldleData data = valueMap.get(date);
-                    if (data == null) {
-                        return null;
-                    }
-                    return new FpldleHistoryData()
-                            .setDate(date)
-                            .setElement(data.getElement())
-                            .setCode(data.getCode())
-                            .setName(data.getName())
-                            .setFullName(data.getFullName())
-                            .setSeason(data.getSeason())
-                            .setPosition(data.getPosition())
-                            .setTeamName(data.getTeamName())
-                            .setTeamShortName(data.getTeamShortName());
-                })
-                .filter(Objects::nonNull)
-                .sorted(Comparator.comparing(FpldleHistoryData::getDate).reversed())
-                .collect(Collectors.toList());
+        return valueMap.keySet().stream().filter(o -> !StringUtils.equals(today, o)).map(date -> {
+            FpldleData data = valueMap.get(date);
+            if (data == null) {
+                return null;
+            }
+            return new FpldleHistoryData().setDate(date).setElement(data.getElement()).setCode(data.getCode()).setName(data.getName()).setFullName(data.getFullName()).setSeason(data.getSeason()).setPosition(data.getPosition()).setTeamName(data.getTeamName()).setTeamShortName(data.getTeamShortName());
+        }).filter(Objects::nonNull).sorted(Comparator.comparing(FpldleHistoryData::getDate).reversed()).collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<RecordData> getRecordList(String openId) {
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
+        Map<String, Map<String, String>> hashMap = Maps.newHashMap();
+        RedisUtils.getHashByKey(key).forEach((k, v) -> hashMap.put(k.toString(), (Map<String, String>) v));
+        return hashMap.entrySet().stream().filter(o -> !StringUtils.equals(today, o.getKey())).map(o -> new RecordData().setOpenId(openId).setDate(o.getKey()).setResult(this.getUserDailyLastResult(o.getValue())).setTryTimes(o.getValue().size()).setSolve(this.userDailySolve(o.getKey(), o.getValue()))).sorted(Comparator.comparing(RecordData::getDate)).collect(Collectors.toList());
+    }
+
+    private String getUserDailyLastResult(Map<String, String> resultMap) {
+        String result = "";
+        for (int i = 1; i < 7; i++) {
+            String roundResult = resultMap.getOrDefault(String.valueOf(i), null);
+            if (StringUtils.isNotEmpty(roundResult)) {
+                result = roundResult.replaceAll(",", "");
+            }
+        }
+        return result;
+    }
+
+    private boolean userDailySolve(String date, Map<String, String> resultMap) {
+        // fpldle
+        String fpldle = "";
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
+        FpldleData data = (FpldleData) RedisUtils.getHashValue(key, date);
+        if (data != null) {
+            fpldle = data.getName();
+        }
+        // compare
+        for (int i = 1; i < 7; i++) {
+            String roundResult = resultMap.getOrDefault(String.valueOf(i), null);
+            if (StringUtils.isEmpty(roundResult)) {
+                continue;
+            }
+            roundResult = roundResult.replaceAll(",", "");
+            if (StringUtils.equalsIgnoreCase(fpldle, roundResult)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

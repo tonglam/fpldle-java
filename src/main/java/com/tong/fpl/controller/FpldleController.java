@@ -31,6 +31,11 @@ public class FpldleController {
         return LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY)).substring(4, 8);
     }
 
+    @RequestMapping("/getServiceFullDate")
+    public String getServiceFullDate() {
+        return LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
+    }
+
     @RequestMapping("/getDailyFpldle")
     public FpldleData getDailyFpldle() {
         return this.fpldleApi.getDailyFpldle(LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY)));

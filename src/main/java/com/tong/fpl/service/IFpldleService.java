@@ -84,7 +84,7 @@ public interface IFpldleService {
      * @param date   date
      * @return 验证结果
      */
-    List<Integer> getDateVerifyList(String openId, String date);
+    List<String> getDateVerifyList(String openId, String date);
 
     /**
      * 获取球员照片

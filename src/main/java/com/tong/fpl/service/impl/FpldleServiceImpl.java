@@ -238,8 +238,8 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<Integer> getDateVerifyList(String openId, String date) {
-        List<Integer> list = Lists.newArrayList();
+    public List<String> getDateVerifyList(String openId, String date) {
+        List<String> list = Lists.newArrayList();
         // result
         String resultKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
         Map<String, String> valueMap = (Map<String, String>) RedisUtils.getHashValue(resultKey, date);
@@ -262,11 +262,11 @@ public class FpldleServiceImpl implements IFpldleService {
             for (int i = 0; i < roundResult.length; i++) {
                 String letter = roundResult[i];
                 if (StringUtils.equals(letter, Character.toString(fpldleList[i]))) {
-                    list.add(GuessResultEnum.CORRECT.getResult());
+                    list.add(String.valueOf(GuessResultEnum.CORRECT.getResult()));
                 } else if (fpldle.contains(letter)) {
-                    list.add(GuessResultEnum.ORDER.getResult());
+                    list.add(String.valueOf(GuessResultEnum.ORDER.getResult()));
                 } else {
-                    list.add(GuessResultEnum.WRONG.getResult());
+                    list.add(String.valueOf(GuessResultEnum.WRONG.getResult()));
                 }
             }
         });

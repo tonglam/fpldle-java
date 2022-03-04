@@ -25,7 +25,7 @@ public class Constant {
     public static final String USER = "User";
 
     // wechat
-    public static final String APP_ID = "wx4b37f3f2c2c7f169";
-    public static final String SECRET_ID = "d7e8060219867c056f314fa177b0e109";
+    public static final String APP_ID = "wxb105fb69e8d9a10e";
+    public static final String SECRET_ID = "66544f4be5cfae2637c3ac6c999d1f4a";
 
 }

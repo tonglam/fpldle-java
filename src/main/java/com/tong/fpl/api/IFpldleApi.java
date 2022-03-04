@@ -26,8 +26,6 @@ public interface IFpldleApi {
      */
     String getWechatAccessToken();
 
-    String getWechatOpenId(String code);
-
     /**
      * 获取微信小程序的用户openId
      *

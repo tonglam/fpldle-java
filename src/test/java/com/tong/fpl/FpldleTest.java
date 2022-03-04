@@ -106,14 +106,7 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"001ORc000DUzpN16a2100u9GFY1ORc0B"})
-    void getWechatOpenId(String code) {
-        String openId = this.fpldleService.getWechatOpenId(code);
-        System.out.println(1);
-    }
-
-    @ParameterizedTest
-    @CsvSource({"001ORc000DUzpN16a2100u9GFY1ORc0B"})
+    @CsvSource({"021n4Mkl2dosK8435Hll22NgdJ2n4Mk7"})
     void getWechatUserOpenId(String code) {
         String openId = this.fpldleService.getWechatUserOpenId(code);
         System.out.println(1);

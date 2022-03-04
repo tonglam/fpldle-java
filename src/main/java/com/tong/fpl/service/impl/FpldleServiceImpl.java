@@ -238,8 +238,8 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<List<Integer>> getDateVerifyList(String openId, String date) {
-        List<List<Integer>> list = Lists.newArrayList();
+    public List<Integer> getDateVerifyList(String openId, String date) {
+        List<Integer> list = Lists.newArrayList();
         // result
         String resultKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
         Map<String, String> valueMap = (Map<String, String>) RedisUtils.getHashValue(resultKey, date);
@@ -258,19 +258,17 @@ public class FpldleServiceImpl implements IFpldleService {
         char[] fpldleList = fpldle.toCharArray();
         // verify
         valueMap.values().forEach(result -> {
-            List<Integer> roundList = Lists.newArrayList();
             String[] roundResult = result.split(",");
             for (int i = 0; i < roundResult.length; i++) {
                 String letter = roundResult[i];
                 if (StringUtils.equals(letter, Character.toString(fpldleList[i]))) {
-                    roundList.add(GuessResultEnum.CORRECT.getResult());
+                    list.add(GuessResultEnum.CORRECT.getResult());
                 } else if (fpldle.contains(letter)) {
-                    roundList.add(GuessResultEnum.ORDER.getResult());
+                    list.add(GuessResultEnum.ORDER.getResult());
                 } else {
-                    roundList.add(GuessResultEnum.WRONG.getResult());
+                    list.add(GuessResultEnum.WRONG.getResult());
                 }
             }
-            list.add(roundList);
         });
         return list;
     }

@@ -60,7 +60,7 @@ public class FpldleController {
     }
 
     @RequestMapping("/getDateVerifyList")
-    public List<List<Integer>> getDateVerifyList(@RequestParam String openId, @RequestParam String date) {
+    public List<Integer> getDateVerifyList(@RequestParam String openId, @RequestParam String date) {
         return this.fpldleApi.getDateVerifyList(openId, LocalDate.now().getYear() + date);
     }
 

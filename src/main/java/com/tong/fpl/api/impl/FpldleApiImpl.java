@@ -49,7 +49,7 @@ public class FpldleApiImpl implements IFpldleApi {
     }
 
     @Override
-    public List<List<Integer>> getDateVerifyList(String openId, String date) {
+    public List<Integer> getDateVerifyList(String openId, String date) {
         return this.fpldleService.getDateVerifyList(openId, date);
     }
 

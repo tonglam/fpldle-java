@@ -31,11 +31,6 @@ public class FpldleController {
         return LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY)).substring(4, 8);
     }
 
-    @RequestMapping("/getServiceFullDate")
-    public String getServiceFullDate() {
-        return LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
-    }
-
     @RequestMapping("/getDailyFpldle")
     public FpldleData getDailyFpldle() {
         return this.fpldleApi.getDailyFpldle(LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY)));
@@ -66,7 +61,7 @@ public class FpldleController {
 
     @RequestMapping("/getDateVerifyList")
     public List<List<Integer>> getDateVerifyList(@RequestParam String openId, @RequestParam String date) {
-        return this.fpldleApi.getDateVerifyList(openId, date);
+        return this.fpldleApi.getDateVerifyList(openId, LocalDate.now().getYear() + date);
     }
 
     @RequestMapping("/getPlayerPicture")

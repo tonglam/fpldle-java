@@ -23,6 +23,7 @@ public class Constant {
     public static final String USER_STATISTIC = "UserStatistic";
     public static final String DATE_STATISTIC = "DateStatistic";
     public static final String USER = "User";
+    public static final String USER_RELATION = "UserRelation";
 
     // wechat
     public static final String APP_ID = "wxb105fb69e8d9a10e";

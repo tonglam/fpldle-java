@@ -114,6 +114,11 @@ public interface IFpldleService {
     void insertUserInfo(String openId, String nickName, String avatarUrl);
 
     /**
+     * 用户昵称和openId关系
+     */
+    void insertNickNameOpenIdRelations();
+
+    /**
      * 获取往期数据
      *
      * @return list

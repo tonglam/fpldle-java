@@ -1,10 +1,7 @@
 package com.tong.fpl.service.impl;
 
 import cn.hutool.core.util.NumberUtil;
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Table;
+import com.google.common.collect.*;
 import com.tong.fpl.constant.Constant;
 import com.tong.fpl.constant.enums.GuessResultEnum;
 import com.tong.fpl.constant.enums.PositionEnum;
@@ -192,6 +189,9 @@ public class FpldleServiceImpl implements IFpldleService {
     @SuppressWarnings("unchecked")
     @Override
     public void insertDailyResult(String openId, String result) {
+        if (StringUtils.isEmpty(openId) || openId.contains("invalid")) {
+            return;
+        }
         // history
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
@@ -390,6 +390,32 @@ public class FpldleServiceImpl implements IFpldleService {
         Map<String, Object> valueMap = Maps.newHashMap();
         RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), v));
         valueMap.put(openId, new UserInfo().setOpenId(openId).setNickName(nickName).setAvatarUrl(avatarUrl));
+        cacheMap.put(key, valueMap);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
+    }
+
+    @Override
+    public void insertNickNameOpenIdRelations() {
+        Multimap<String, String> relationMap = HashMultimap.create();
+        // user_info
+        String userInfoKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER);
+        RedisUtils.getHashByKey(userInfoKey).forEach((k, v) -> {
+            String openId = k.toString();
+            UserInfo userInfo = (UserInfo) v;
+            if (userInfo == null) {
+                return;
+            }
+            String nickName = userInfo.getNickName();
+            relationMap.put(nickName, openId);
+
+        });
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_RELATION);
+        Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+        Map<String, Object> valueMap = Maps.newHashMap();
+        relationMap.keys().forEach(nickName -> {
+            List<String> openIdList = new ArrayList<>(relationMap.get(nickName));
+            valueMap.put(nickName, openIdList);
+        });
         cacheMap.put(key, valueMap);
         RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }

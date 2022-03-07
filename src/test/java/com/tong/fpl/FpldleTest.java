@@ -1,13 +1,21 @@
 package com.tong.fpl;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.tong.fpl.constant.Constant;
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.FpldleHistoryData;
 import com.tong.fpl.domain.RecordData;
+import com.tong.fpl.domain.UserInfo;
 import com.tong.fpl.service.IFpldleService;
+import com.tong.fpl.util.RedisUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -94,6 +102,11 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @Test
+    void insertNickNameOpenIdRelations() {
+        this.fpldleService.insertNickNameOpenIdRelations();
+    }
+
+    @Test
     void getHistoryFpldle() {
         List<FpldleHistoryData> list = this.fpldleService.getHistoryFpldle();
         System.out.println(1);
@@ -110,6 +123,149 @@ public class FpldleTest extends FpldleApplicationTests {
     void getWechatUserOpenId(String code) {
         String openId = this.fpldleService.getWechatUserOpenId(code);
         System.out.println(1);
+    }
+
+    @Test
+    void transfers() {
+        // user
+        Multimap<String, String> userMap = HashMultimap.create(); // user -> openId
+        String userKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER);
+        RedisUtils.getHashByKey(userKey).forEach((k, v) -> {
+            String openId = k.toString();
+            UserInfo userInfo = (UserInfo) v;
+            if (userInfo == null) {
+                return;
+            }
+            userMap.put(userInfo.getNickName(), openId);
+        });
+        // filter user
+        Multimap<String, String> filterUserMap = HashMultimap.create(); // user -> openId
+        userMap.keySet().forEach(nickName -> {
+            if (userMap.get(nickName).size() > 1) {
+                userMap.get(nickName).forEach(o -> filterUserMap.put(nickName, o));
+            }
+        });
+        // result
+        Map<String, Map<String, String>> resultMap = Maps.newHashMap(); // openId -> map(date -> result)
+        RedisUtils.getKeyPattern(StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT))
+                .forEach(key -> {
+                    Map<String, String> valueMap = Maps.newHashMap();
+                    RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), v.toString()));
+                    String openId = StringUtils.substringAfterLast(key, "::");
+                    resultMap.put(openId, valueMap);
+                });
+        // copy
+        Map<String, Map<String, String>> copyResultMap = Maps.newHashMap(); // openId -> map(date -> result)
+        filterUserMap.keys().forEach(nickName -> {
+            Map<String, String> dateMap = Maps.newHashMap();
+            filterUserMap.get(nickName).forEach(openId -> {
+                Map<String, String> openIdDateMap = resultMap.get(openId);
+                if (CollectionUtils.isEmpty(openIdDateMap)) {
+                    return;
+                }
+                openIdDateMap.keySet().forEach(date -> {
+                    if (dateMap.containsKey(date)) {
+                        return;
+                    }
+                    if (StringUtils.isEmpty(openIdDateMap.get(date))) {
+                        return;
+                    }
+                    dateMap.put(date, openIdDateMap.get(date));
+                });
+                copyResultMap.put(openId, dateMap);
+            });
+        });
+        // redis
+        copyResultMap.keySet().forEach(openId -> {
+            Map<String, String> dateMap = copyResultMap.get(openId);
+            if (CollectionUtils.isEmpty(dateMap)) {
+                return;
+            }
+            String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
+            Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+            Map<String, Object> valueMap = Maps.newHashMap();
+            dateMap.keySet().forEach(date -> {
+                valueMap.put(date, dateMap);
+                cacheMap.put(key, valueMap);
+            });
+            RedisUtils.pipelineHashCache(cacheMap, -1, null);
+        });
+    }
+
+    @ParameterizedTest
+    @CsvSource({"Fpldle::Result::odU8S4yZQYBT0bFRzFfdzqGw2c3c"})
+    void fix(String key) {
+        Map<String, Map<String, String>> resultMap = Maps.newHashMap();
+        RedisUtils.getHashByKey(key).forEach((k, v) -> resultMap.put(k.toString(), (Map<String, String>) v));
+        Map<String, Object> valueMap = Maps.newHashMap();
+        resultMap.keySet().forEach(date -> {
+            String value = StringUtils.substringBetween(resultMap.get(date).get(date), "{", "}");
+            Map<String, String> transValueMap = this.transValueMap(value);
+            valueMap.put(date, transValueMap);
+        });
+        Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+        cacheMap.put(key, valueMap);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"Fpldle::Result::odU8S40lnaBAPO1E_kDcfwcDsdiY"})
+    void fix2(String key) {
+        Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+        Map<String, Object> valueMap = Maps.newHashMap();
+        RedisUtils.getHashByKey(key).forEach((k, v) -> {
+            String value = StringUtils.substringBetween(v.toString(), "{", "}");
+            Map<String, String> transValueMap = this.transValueMap(value);
+            valueMap.put(k.toString(), transValueMap);
+        });
+        cacheMap.put(key, valueMap);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
+    }
+
+    private Map<String, String> transValueMap(String str) {
+        Map<String, String> map = Maps.newHashMap();
+        Map<Integer, Map<Integer, Integer>> indexMap = this.createIndexMap();
+        int times = (str.length() + 2) / 13;
+        for (int i = 1; i < times + 1; i++) {
+            Map<Integer, Integer> subIndexMap = indexMap.get(i);
+            int start = subIndexMap.keySet()
+                    .stream()
+                    .findFirst()
+                    .orElse(-1);
+            int end = subIndexMap.values()
+                    .stream()
+                    .findFirst()
+                    .orElse(-1);
+            if (start == -1 || end == -1) {
+                continue;
+            }
+            String subStr = StringUtils.substringAfter(str.substring(start, end), "=");
+            map.put(String.valueOf(i), subStr);
+        }
+        return map;
+    }
+
+    private Map<Integer, Map<Integer, Integer>> createIndexMap() {
+        Map<Integer, Map<Integer, Integer>> map = Maps.newHashMap();
+        Map<Integer, Integer> a = Maps.newHashMap();
+        a.put(0, 11);
+        map.put(1, a);
+        Map<Integer, Integer> b = Maps.newHashMap();
+        b.put(13, 24);
+        map.put(2, b);
+        Map<Integer, Integer> c = Maps.newHashMap();
+        c.put(26, 37);
+        map.put(3, c);
+        Map<Integer, Integer> d = Maps.newHashMap();
+        d.put(39, 50);
+        map.put(4, d);
+        Map<Integer, Integer> e = Maps.newHashMap();
+        e.put(52, 63);
+        map.put(5, e);
+        Map<Integer, Integer> f = Maps.newHashMap();
+        f.put(65, 76);
+        map.put(6, f);
+        return map;
     }
 
 }

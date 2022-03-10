@@ -195,9 +195,15 @@ public class FpldleServiceImpl implements IFpldleService {
         // history
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
-        Map<Integer, String> map = (Map<Integer, String>) RedisUtils.getHashValue(key, date);
+        Map<String, String> map = (Map<String, String>) RedisUtils.getHashValue(key, date);
         if (CollectionUtils.isEmpty(map)) {
             map = Maps.newHashMap();
+        }
+        // last one
+        String lastResult = map.get(String.valueOf(map.size()));
+        if (StringUtils.equals(lastResult, result)) {
+            log.error("openId:{}, date:{}, result:{}, last_result:{} ,result repeat", openId, date, result, lastResult);
+            return;
         }
         int tryTimes = map.size() + 1;
         if (tryTimes > 6) {
@@ -205,13 +211,13 @@ public class FpldleServiceImpl implements IFpldleService {
             return;
         }
         log.info("openId:{}, date:{}, tryTimes:{}, result:{}", openId, date, tryTimes, result);
-        map.put(tryTimes, result);
+        map.put(String.valueOf(tryTimes), result);
         // redis
         Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
         Map<String, Object> valueMap = Maps.newHashMap();
         valueMap.put(date, map);
         cacheMap.put(key, valueMap);
-        RedisUtils.pipelineHashCache(cacheMap, -1, null);
+//        RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
 
     @SuppressWarnings("unchecked")

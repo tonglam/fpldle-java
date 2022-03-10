@@ -42,4 +42,13 @@ public class FpldleTask {
         }
     }
 
+    @Scheduled(cron = "0 30 0 * * *")
+    public void userRelation() {
+        try {
+            this.fpldleService.insertNickNameOpenIdRelations();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

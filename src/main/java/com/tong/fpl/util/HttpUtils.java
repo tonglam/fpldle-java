@@ -1,6 +1,7 @@
 package com.tong.fpl.util;
 
 import cn.hutool.core.codec.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -16,7 +17,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.rmi.server.ExportException;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,23 +60,17 @@ public class HttpUtils {
     public static Optional<String> httpGetBase64(String url) throws IOException {
         HttpGet httpGet = new HttpGet(url);
         try (CloseableHttpResponse response = httpclient.execute(httpGet)) {
-            if (response.getStatusLine().getStatusCode() == 200) {
-                byte[] bytes;
-                String base64String;
-                InputStream inputStream = response.getEntity().getContent();
-                int size = inputStream.available();
-                bytes = new byte[size];
-                inputStream.read(bytes);
-                inputStream.close();
-                base64String = Base64.encode(bytes);
+            if (response.getStatusLine().getStatusCode() == 200 && response.getEntity() != null && response.getEntity().getContent() != null) {
+                String base64String = StringUtils.join("data:image/png;base64,", Base64.encode(response.getEntity().getContent()));
                 return Optional.of(base64String);
+            } else {
+                return Optional.empty();
             }
         } catch (Exception e) {
             throw new ExportException(e.getMessage());
         } finally {
             httpclient.close();
         }
-        return Optional.empty();
     }
 
     /**

@@ -217,7 +217,7 @@ public class FpldleServiceImpl implements IFpldleService {
         Map<String, Object> valueMap = Maps.newHashMap();
         valueMap.put(date, map);
         cacheMap.put(key, valueMap);
-//        RedisUtils.pipelineHashCache(cacheMap, -1, null);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
 
     @SuppressWarnings("unchecked")

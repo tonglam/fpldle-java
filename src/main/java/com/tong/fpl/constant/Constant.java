@@ -11,7 +11,7 @@ public class Constant {
     public static final String SHORTDAY = "yyyyMMdd";
 
     // url
-    public static final String PICTURE = "https://resources.premierleague.com/premierleague/photos/players/110x140/p%s.png";
+    public static final String PHOTOS = "https://resources.premierleague.com/premierleague/photos/players/110x140/p%s.png";
     public static final String CODE_SESSION = "https://api.weixin.qq.com/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code";
     public static final String TOKEN = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s";
 
@@ -24,6 +24,7 @@ public class Constant {
     public static final String DATE_STATISTIC = "DateStatistic";
     public static final String USER = "User";
     public static final String USER_RELATION = "UserRelation";
+    public static final String PICTURE = "Picture";
 
     // wechat
     public static final String APP_ID = "wxb105fb69e8d9a10e";

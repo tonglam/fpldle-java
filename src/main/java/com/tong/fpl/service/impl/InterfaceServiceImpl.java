@@ -21,7 +21,7 @@ public class InterfaceServiceImpl implements IInterfaceService {
     @Override
     public Optional<String> getPlayerPicture(int code) {
         try {
-            return HttpUtils.httpGetBase64(String.format(Constant.PICTURE, code));
+            return HttpUtils.httpGetBase64(String.format(Constant.PHOTOS, code));
         } catch (IOException e) {
             e.printStackTrace();
         }

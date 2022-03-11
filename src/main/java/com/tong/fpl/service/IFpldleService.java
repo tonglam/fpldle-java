@@ -133,4 +133,9 @@ public interface IFpldleService {
      */
     List<RecordData> getRecordList(String openId);
 
+    /**
+     * 增加字典球员的图片
+     */
+    void insertDictionaryPictues();
+
 }

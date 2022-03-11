@@ -25,6 +25,8 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -281,8 +283,12 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @Override
     public String getPlayerPicture(int code) {
-        // 考虑加一级缓存，或者先全量写到服务器
-        return this.interfaceService.getPlayerPicture(code).orElse(null);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.PICTURE);
+        String picture = (String) RedisUtils.getHashValue(key, String.valueOf(code));
+        if (StringUtils.isEmpty(picture)) {
+            return null;
+        }
+        return picture;
     }
 
     @SuppressWarnings("unchecked")
@@ -356,7 +362,6 @@ public class FpldleServiceImpl implements IFpldleService {
     @SuppressWarnings("unchecked")
     @Override
     public void insertDateStatistic() {
-
         // get data
         Table<String, String, RecordData> dateResultTable = HashBasedTable.create(); // date -> openId -> map(tryTimes -> result)
         String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
@@ -482,6 +487,57 @@ public class FpldleServiceImpl implements IFpldleService {
             }
         }
         return false;
+    }
+
+    @Override
+    public void insertDictionaryPictues() {
+        // get dictionary
+        String dictionaryKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DICTIONARY);
+        Map<String, FpldleData> dictionaryMap = Maps.newHashMap();
+        RedisUtils.getHashByKey(dictionaryKey).forEach((k, v) -> dictionaryMap.put(k.toString(), (FpldleData) v));
+        if (CollectionUtils.isEmpty(dictionaryMap)) {
+            log.info("getDictionary redis value empty");
+            return;
+        }
+        // code list
+        List<Integer> codeList = dictionaryMap.values()
+                .stream()
+                .map(FpldleData::getCode)
+                .collect(Collectors.toList());
+        // get picture
+        ForkJoinPool forkJoinPool = new ForkJoinPool(10);
+        List<CompletableFuture<Map<String, String>>> future = codeList.stream()
+                .map(o -> CompletableFuture.supplyAsync(() -> this.getPicture(o), forkJoinPool))
+                .collect(Collectors.toList());
+        List<Map<String, String>> pictureMapList = future
+                .stream()
+                .map(CompletableFuture::join)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        // redis
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.PICTURE);
+        Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
+        Map<String, Object> valueMap = Maps.newHashMap();
+        pictureMapList.forEach(o ->
+                o.keySet().forEach(code -> {
+                    String base64String = o.getOrDefault(code, null);
+                    if (StringUtils.isEmpty(base64String)) {
+                        return;
+                    }
+                    valueMap.put(code, base64String);
+                }));
+        cacheMap.put(key, valueMap);
+        RedisUtils.pipelineHashCache(cacheMap, -1, null);
+    }
+
+    private Map<String, String> getPicture(int code) {
+        Optional<String> result = this.interfaceService.getPlayerPicture(code);
+        if (result.isPresent()) {
+            Map<String, String> map = Maps.newHashMap();
+            map.put(String.valueOf(code), result.get());
+            return map;
+        }
+        return null;
     }
 
 }

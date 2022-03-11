@@ -268,4 +268,9 @@ public class FpldleTest extends FpldleApplicationTests {
         return map;
     }
 
+    @Test
+    void insertDictionaryPictues() {
+        this.fpldleService.insertDictionaryPictues();
+    }
+
 }

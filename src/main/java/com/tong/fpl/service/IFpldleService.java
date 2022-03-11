@@ -136,6 +136,6 @@ public interface IFpldleService {
     /**
      * 增加字典球员的图片
      */
-    void insertDictionaryPictues();
+    void insertDictionaryPictures();
 
 }

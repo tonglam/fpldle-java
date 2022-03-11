@@ -438,12 +438,15 @@ public class FpldleServiceImpl implements IFpldleService {
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
         RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), (FpldleData) v));
         return valueMap.keySet().stream().filter(o -> !StringUtils.equals(today, o)).map(date -> {
-            FpldleData data = valueMap.get(date);
-            if (data == null) {
-                return null;
-            }
-            return new FpldleHistoryData().setDate(date).setElement(data.getElement()).setCode(data.getCode()).setName(data.getName()).setFullName(data.getFullName()).setSeason(data.getSeason()).setPosition(data.getPosition()).setTeamName(data.getTeamName()).setTeamShortName(data.getTeamShortName());
-        }).filter(Objects::nonNull).sorted(Comparator.comparing(FpldleHistoryData::getDate).reversed()).collect(Collectors.toList());
+                    FpldleData data = valueMap.get(date);
+                    if (data == null) {
+                        return null;
+                    }
+                    return new FpldleHistoryData().setDate(date).setElement(data.getElement()).setCode(data.getCode()).setName(data.getName()).setFullName(data.getFullName()).setSeason(data.getSeason()).setPosition(data.getPosition()).setTeamName(data.getTeamName()).setTeamShortName(data.getTeamShortName());
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(FpldleHistoryData::getDate).reversed())
+                .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
@@ -453,7 +456,12 @@ public class FpldleServiceImpl implements IFpldleService {
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
         Map<String, Map<String, String>> hashMap = Maps.newHashMap();
         RedisUtils.getHashByKey(key).forEach((k, v) -> hashMap.put(k.toString(), (Map<String, String>) v));
-        return hashMap.entrySet().stream().filter(o -> !StringUtils.equals(today, o.getKey())).map(o -> new RecordData().setOpenId(openId).setDate(o.getKey()).setResult(this.getUserDailyLastResult(o.getValue())).setTryTimes(o.getValue().size()).setSolve(this.userDailySolve(o.getKey(), o.getValue()))).sorted(Comparator.comparing(RecordData::getDate)).collect(Collectors.toList());
+        return hashMap.entrySet()
+                .stream()
+                .filter(o -> !StringUtils.equals(today, o.getKey()))
+                .map(o -> new RecordData().setOpenId(openId).setDate(o.getKey()).setResult(this.getUserDailyLastResult(o.getValue())).setTryTimes(o.getValue().size()).setSolve(this.userDailySolve(o.getKey(), o.getValue())))
+                .sorted(Comparator.comparing(RecordData::getDate).reversed())
+                .collect(Collectors.toList());
     }
 
     private String getUserDailyLastResult(Map<String, String> resultMap) {
@@ -490,7 +498,7 @@ public class FpldleServiceImpl implements IFpldleService {
     }
 
     @Override
-    public void insertDictionaryPictues() {
+    public void insertDictionaryPictures() {
         // get dictionary
         String dictionaryKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DICTIONARY);
         Map<String, FpldleData> dictionaryMap = Maps.newHashMap();

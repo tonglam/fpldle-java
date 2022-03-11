@@ -270,7 +270,7 @@ public class FpldleTest extends FpldleApplicationTests {
 
     @Test
     void insertDictionaryPictues() {
-        this.fpldleService.insertDictionaryPictues();
+        this.fpldleService.insertDictionaryPictures();
     }
 
 }

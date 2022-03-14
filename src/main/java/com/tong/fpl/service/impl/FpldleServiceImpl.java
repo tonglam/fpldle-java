@@ -397,6 +397,11 @@ public class FpldleServiceImpl implements IFpldleService {
     @Override
     public void insertUserInfo(String openId, String nickName, String avatarUrl) {
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER);
+        // exist
+        if (Objects.nonNull(RedisUtils.getHashValue(key, openId))) {
+            return;
+        }
+        // insert
         Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
         Map<String, Object> valueMap = Maps.newHashMap();
         RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), v));

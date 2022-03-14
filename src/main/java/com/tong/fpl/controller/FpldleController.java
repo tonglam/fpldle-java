@@ -71,6 +71,9 @@ public class FpldleController {
 
     @RequestMapping("/insertUserInfo")
     void insertUserInfo(@RequestParam String openId, @RequestParam String nickName, @RequestParam String avatarUrl) {
+        if (StringUtils.isEmpty(openId) || StringUtils.isEmpty(nickName) || StringUtils.isEmpty(avatarUrl)) {
+            return;
+        }
         this.fpldleApi.insertUserInfo(openId, nickName, avatarUrl);
     }
 

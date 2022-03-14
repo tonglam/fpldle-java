@@ -301,6 +301,10 @@ public class FpldleServiceImpl implements IFpldleService {
             String openId = StringUtils.substringAfterLast(resultKey, "::");
             RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDailyResultTable.put(openId, k.toString(), new RecordData().setDate(k.toString()).setResult(this.getUserDailyLastResult((Map<String, String>) v)).setTryTimes(((Map<?, ?>) v).size()).setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))));
         });
+        // get user
+        Map<String, UserInfo> userInfoMap = Maps.newHashMap(); // openId -> userInfo
+        String userKey = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER);
+        RedisUtils.getHashByKey(userKey).forEach((k, v) -> userInfoMap.put(k.toString(), (UserInfo) v));
         // user stat redis
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
         Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
@@ -311,7 +315,7 @@ public class FpldleServiceImpl implements IFpldleService {
             Map<String, UserStatisticData> statMap = Maps.newHashMap();
             // every date
             for (String statDate : userDailyResultTable.columnKeySet()) {
-                statMap.put(statDate, this.initUserStatisticData(openId, userDailyResultTable.row(openId)));
+                statMap.put(statDate, this.initUserStatisticData(openId, statDate, userDailyResultTable.row(openId), userInfoMap));
                 valueMap.put(openId, statMap);
             }
         });
@@ -319,16 +323,53 @@ public class FpldleServiceImpl implements IFpldleService {
         RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
 
-    private UserStatisticData initUserStatisticData(String openId, Map<String, RecordData> userRecordMap) {
-        List<RecordData> recordList = new ArrayList<>(userRecordMap.values());
+    private UserStatisticData initUserStatisticData(String openId, String date, Map<String, RecordData> userRecordMap, Map<String, UserInfo> userInfoMap) {
+        LocalDate localDate = LocalDate.parse(CommonUtils.getDateFromShortDay(date));
+        List<RecordData> recordList = userRecordMap.values()
+                .stream()
+                .filter(o -> LocalDate.parse(CommonUtils.getDateFromShortDay(o.getDate())).isBefore(localDate))
+                .collect(Collectors.toList());
+        UserInfo userInfo = userInfoMap.getOrDefault(openId, new UserInfo());
         String lastDate = userRecordMap.keySet().stream().max(Comparator.naturalOrder()).orElse("");
         RecordData lastData = userRecordMap.get(lastDate);
-        return new UserStatisticData().setOpenId(openId).setTryTimes(lastData.getTryTimes()).setTotalGuessDays(recordList.size()).setSolve(lastData.isSolve()).setTotalTryTimes(recordList.stream().mapToInt(RecordData::getTryTimes).sum()).setTotalHitTimes(recordList.stream().mapToInt(o -> {
-            if (o.isSolve()) {
-                return 1;
-            }
-            return 0;
-        }).sum()).setConsecutiveGuessDays(this.calcConsecutiveGuessDays(lastDate, recordList.stream().map(RecordData::getDate).collect(Collectors.toList()))).setConsecutiveHitDays(this.calcConsecutiveHitDays(lastDate, recordList.stream().filter(RecordData::isSolve).map(RecordData::getDate).collect(Collectors.toList())));
+        return new UserStatisticData()
+                .setOpenId(openId)
+                .setNickName(userInfo.getNickName())
+                .setAvatarUrl(userInfo.getAvatarUrl())
+                .setTryTimes(lastData.getTryTimes())
+                .setTotalGuessDays(recordList.size())
+                .setSolve(lastData.isSolve())
+                .setTotalTryTimes(
+                        recordList
+                                .stream()
+                                .mapToInt(RecordData::getTryTimes)
+                                .sum()
+                )
+                .setTotalHitTimes(
+                        recordList
+                                .stream()
+                                .mapToInt(o -> {
+                                    if (o.isSolve()) {
+                                        return 1;
+                                    }
+                                    return 0;
+                                })
+                                .sum()
+                )
+                .setConsecutiveGuessDays(
+                        this.calcConsecutiveGuessDays(lastDate,
+                                recordList
+                                        .stream()
+                                        .map(RecordData::getDate)
+                                        .collect(Collectors.toList()))
+                )
+                .setConsecutiveHitDays(this.calcConsecutiveHitDays(lastDate,
+                        recordList
+                                .stream()
+                                .filter(RecordData::isSolve)
+                                .map(RecordData::getDate)
+                                .collect(Collectors.toList()))
+                );
     }
 
     private int calcConsecutiveGuessDays(String lastDate, List<String> guessDaysList) {
@@ -383,14 +424,19 @@ public class FpldleServiceImpl implements IFpldleService {
     }
 
     private DateStatisticData initDateStatisticData(String date, Map<String, RecordData> dateRecordMap) {
-        List<RecordData> recordList = new ArrayList<>(dateRecordMap.values());
+        List<RecordData> recordList = dateRecordMap.values()
+                .stream()
+                .filter(o -> StringUtils.equals(date, o.getDate()))
+                .collect(Collectors.toList());
         DateStatisticData data = new DateStatisticData().setDate(date).setTotalUsers(recordList.size()).setTotalHitUsers(recordList.stream().mapToInt(o -> {
             if (o.isSolve()) {
                 return 1;
             }
             return 0;
         }).sum()).setTotalTryTimes(recordList.stream().mapToInt(RecordData::getTryTimes).sum());
-        data.setUserHitRate(NumberUtil.formatPercent(NumberUtil.div(data.getTotalHitUsers(), data.getTotalUsers()), 1)).setAverageTryTimes(NumberUtil.div(data.getTotalTryTimes(), data.getTotalUsers(), 2)).setAverageHitTimes(NumberUtil.div(recordList.stream().filter(RecordData::isSolve).mapToInt(RecordData::getTryTimes).sum(), data.getTotalHitUsers(), 2));
+        if (data.getTotalHitUsers() > 0 && data.getTotalUsers() > 0) {
+            data.setUserHitRate(NumberUtil.formatPercent(NumberUtil.div(data.getTotalHitUsers(), data.getTotalUsers()), 1)).setAverageTryTimes(NumberUtil.div(data.getTotalTryTimes(), data.getTotalUsers(), 2)).setAverageHitTimes(NumberUtil.div(recordList.stream().filter(RecordData::isSolve).mapToInt(RecordData::getTryTimes).sum(), data.getTotalHitUsers(), 2));
+        }
         return data;
     }
 
@@ -550,6 +596,74 @@ public class FpldleServiceImpl implements IFpldleService {
             map.put(String.valueOf(code), result.get());
             return map;
         }
+        return null;
+    }
+
+    @Override
+    public List<ConsecutiveHitData> getConsecutiveHitRank(String date) {
+        // get consecutive map
+        Map<String, UserStatisticData> consecutiveMap = Maps.newHashMap();
+        String fullDate = CommonUtils.fillDateYear(date);
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
+        RedisUtils.getHashByKey(key).forEach((k, v) -> {
+            String openId = k.toString();
+            Map<String, UserStatisticData> userStatisticMap = (Map<String, UserStatisticData>) v;
+            UserStatisticData data = userStatisticMap.keySet()
+                    .stream()
+                    .filter(o -> StringUtils.equals(fullDate, o))
+                    .map(o -> userStatisticMap.getOrDefault(o, null))
+                    .findFirst()
+                    .orElse(null);
+            if (data == null || data.getConsecutiveHitDays() <= 0) {
+                return;
+            }
+            consecutiveMap.put(openId, data);
+        });
+        // sort rank
+        Map<Integer, Integer> rankMap = this.sortConsecutiveHitRank(new ArrayList<>(consecutiveMap.values())); // openId -> rank
+        // return list
+        List<ConsecutiveHitData> list = Lists.newArrayList();
+        consecutiveMap.forEach((openId, data) ->
+                list.add(
+                        new ConsecutiveHitData()
+                                .setRank(rankMap.get(data.getConsecutiveHitDays()))
+                                .setOpenId(openId)
+                                .setNickName(data.getNickName())
+                                .setAvatarUrl(data.getAvatarUrl())
+                                .setConsecutiveDays(data.getConsecutiveHitDays())
+                ));
+        return list
+                .stream()
+                .sorted(Comparator.comparing(ConsecutiveHitData::getConsecutiveDays).reversed())
+                .collect(Collectors.toList());
+    }
+
+    private Map<Integer, Integer> sortConsecutiveHitRank(List<UserStatisticData> list) {
+        Map<Integer, Integer> rankMap = Maps.newHashMap(); // openId -> rank
+        Map<Integer, Integer> rankCountMap = Maps.newLinkedHashMap();
+        list
+                .stream()
+                .sorted(Comparator.comparing(UserStatisticData::getConsecutiveHitDays).reversed())
+                .forEachOrdered(o -> this.setRankMapValue(o.getConsecutiveHitDays(), rankCountMap));
+        int index = 1;
+        for (Integer key :
+                rankCountMap.keySet()) {
+            rankMap.put(key, index);
+            index += rankCountMap.get(key);
+        }
+        return rankMap;
+    }
+
+    private void setRankMapValue(Integer key, Map<Integer, Integer> rankCountMap) {
+        if (rankCountMap.containsKey(key)) {
+            rankCountMap.put(key, rankCountMap.get(key) + 1);
+        } else {
+            rankCountMap.put(key, 1);
+        }
+    }
+
+    @Override
+    public List<AverageHitTimesData> getAverageHitTimesRank(String date) {
         return null;
     }
 

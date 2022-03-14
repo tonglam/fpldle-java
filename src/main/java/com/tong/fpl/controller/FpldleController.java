@@ -5,6 +5,7 @@ import com.tong.fpl.constant.Constant;
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.FpldleHistoryData;
 import com.tong.fpl.domain.RecordData;
+import com.tong.fpl.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,7 @@ public class FpldleController {
 
     @RequestMapping("/getDateVerifyList")
     public List<String> getDateVerifyList(@RequestParam String openId, @RequestParam String date) {
-        return this.fpldleApi.getDateVerifyList(openId, LocalDate.now().getYear() + date);
+        return this.fpldleApi.getDateVerifyList(openId, CommonUtils.fillDateYear(date));
     }
 
     @RequestMapping("/getPlayerPicture")

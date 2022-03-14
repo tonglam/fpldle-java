@@ -1,8 +1,6 @@
 package com.tong.fpl.service;
 
-import com.tong.fpl.domain.FpldleData;
-import com.tong.fpl.domain.FpldleHistoryData;
-import com.tong.fpl.domain.RecordData;
+import com.tong.fpl.domain.*;
 
 import java.util.List;
 import java.util.Map;
@@ -137,5 +135,15 @@ public interface IFpldleService {
      * 增加字典球员的图片
      */
     void insertDictionaryPictures();
+
+    /**
+     * 获取连续命中天数排行榜
+     */
+    List<ConsecutiveHitData> getConsecutiveHitRank(String date);
+
+    /**
+     * 获取平均命中次数排行榜
+     */
+    List<AverageHitTimesData> getAverageHitTimesRank(String date);
 
 }

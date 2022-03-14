@@ -4,10 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.tong.fpl.constant.Constant;
-import com.tong.fpl.domain.FpldleData;
-import com.tong.fpl.domain.FpldleHistoryData;
-import com.tong.fpl.domain.RecordData;
-import com.tong.fpl.domain.UserInfo;
+import com.tong.fpl.domain.*;
 import com.tong.fpl.service.IFpldleService;
 import com.tong.fpl.util.RedisUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -277,6 +274,20 @@ public class FpldleTest extends FpldleApplicationTests {
     @CsvSource({"odU8S40lnaBAPO1E_kDcfwcDsdiY, GunnersRose, https://thirdwx.qlogo.cn/mmopen/vi_32/4kET70zdREBcgInTRBicFjficTXuOxLPzofibVtd0Rx9IIQic45sjsQ38NXAz2zLltVeHsQY1dDY3y7m0x37O8yGIg/132"})
     void inserUserInfo(String openId, String nickName, String avatarUrl) {
         this.fpldleService.insertUserInfo(openId, nickName, avatarUrl);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0314"})
+    void getConsecutiveHitRank(String date) {
+        List<ConsecutiveHitData> list = this.fpldleService.getConsecutiveHitRank(date);
+        System.out.println(1);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"0314"})
+    void getAverageHitTimesRank(String date) {
+        List<AverageHitTimesData> list = this.fpldleService.getAverageHitTimesRank(date);
+        System.out.println(1);
     }
 
 }

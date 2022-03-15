@@ -325,51 +325,16 @@ public class FpldleServiceImpl implements IFpldleService {
 
     private UserStatisticData initUserStatisticData(String openId, String date, Map<String, RecordData> userRecordMap, Map<String, UserInfo> userInfoMap) {
         LocalDate localDate = LocalDate.parse(CommonUtils.getDateFromShortDay(date));
-        List<RecordData> recordList = userRecordMap.values()
-                .stream()
-                .filter(o -> LocalDate.parse(CommonUtils.getDateFromShortDay(o.getDate())).isBefore(localDate))
-                .collect(Collectors.toList());
+        List<RecordData> recordList = userRecordMap.values().stream().filter(o -> LocalDate.parse(CommonUtils.getDateFromShortDay(o.getDate())).isBefore(localDate)).collect(Collectors.toList());
         UserInfo userInfo = userInfoMap.getOrDefault(openId, new UserInfo());
         String lastDate = userRecordMap.keySet().stream().max(Comparator.naturalOrder()).orElse("");
         RecordData lastData = userRecordMap.get(lastDate);
-        return new UserStatisticData()
-                .setOpenId(openId)
-                .setNickName(userInfo.getNickName())
-                .setAvatarUrl(userInfo.getAvatarUrl())
-                .setTryTimes(lastData.getTryTimes())
-                .setTotalGuessDays(recordList.size())
-                .setSolve(lastData.isSolve())
-                .setTotalTryTimes(
-                        recordList
-                                .stream()
-                                .mapToInt(RecordData::getTryTimes)
-                                .sum()
-                )
-                .setTotalHitTimes(
-                        recordList
-                                .stream()
-                                .mapToInt(o -> {
-                                    if (o.isSolve()) {
-                                        return 1;
-                                    }
-                                    return 0;
-                                })
-                                .sum()
-                )
-                .setConsecutiveGuessDays(
-                        this.calcConsecutiveGuessDays(lastDate,
-                                recordList
-                                        .stream()
-                                        .map(RecordData::getDate)
-                                        .collect(Collectors.toList()))
-                )
-                .setConsecutiveHitDays(this.calcConsecutiveHitDays(lastDate,
-                        recordList
-                                .stream()
-                                .filter(RecordData::isSolve)
-                                .map(RecordData::getDate)
-                                .collect(Collectors.toList()))
-                );
+        return new UserStatisticData().setOpenId(openId).setNickName(userInfo.getNickName()).setAvatarUrl(userInfo.getAvatarUrl()).setTryTimes(lastData.getTryTimes()).setTotalGuessDays(recordList.size()).setSolve(lastData.isSolve()).setTotalTryTimes(recordList.stream().mapToInt(RecordData::getTryTimes).sum()).setTotalHitTimes(recordList.stream().mapToInt(o -> {
+            if (o.isSolve()) {
+                return 1;
+            }
+            return 0;
+        }).sum()).setConsecutiveGuessDays(this.calcConsecutiveGuessDays(lastDate, recordList.stream().map(RecordData::getDate).collect(Collectors.toList()))).setConsecutiveHitDays(this.calcConsecutiveHitDays(lastDate, recordList.stream().filter(RecordData::isSolve).map(RecordData::getDate).collect(Collectors.toList())));
     }
 
     private int calcConsecutiveGuessDays(String lastDate, List<String> guessDaysList) {
@@ -424,10 +389,7 @@ public class FpldleServiceImpl implements IFpldleService {
     }
 
     private DateStatisticData initDateStatisticData(String date, Map<String, RecordData> dateRecordMap) {
-        List<RecordData> recordList = dateRecordMap.values()
-                .stream()
-                .filter(o -> StringUtils.equals(date, o.getDate()))
-                .collect(Collectors.toList());
+        List<RecordData> recordList = dateRecordMap.values().stream().filter(o -> StringUtils.equals(date, o.getDate())).collect(Collectors.toList());
         DateStatisticData data = new DateStatisticData().setDate(date).setTotalUsers(recordList.size()).setTotalHitUsers(recordList.stream().mapToInt(o -> {
             if (o.isSolve()) {
                 return 1;
@@ -489,15 +451,12 @@ public class FpldleServiceImpl implements IFpldleService {
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
         RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(k.toString(), (FpldleData) v));
         return valueMap.keySet().stream().filter(o -> !StringUtils.equals(today, o)).map(date -> {
-                    FpldleData data = valueMap.get(date);
-                    if (data == null) {
-                        return null;
-                    }
-                    return new FpldleHistoryData().setDate(date).setElement(data.getElement()).setCode(data.getCode()).setName(data.getName()).setFullName(data.getFullName()).setSeason(data.getSeason()).setPosition(data.getPosition()).setTeamName(data.getTeamName()).setTeamShortName(data.getTeamShortName());
-                })
-                .filter(Objects::nonNull)
-                .sorted(Comparator.comparing(FpldleHistoryData::getDate).reversed())
-                .collect(Collectors.toList());
+            FpldleData data = valueMap.get(date);
+            if (data == null) {
+                return null;
+            }
+            return new FpldleHistoryData().setDate(date).setElement(data.getElement()).setCode(data.getCode()).setName(data.getName()).setFullName(data.getFullName()).setSeason(data.getSeason()).setPosition(data.getPosition()).setTeamName(data.getTeamName()).setTeamShortName(data.getTeamShortName());
+        }).filter(Objects::nonNull).sorted(Comparator.comparing(FpldleHistoryData::getDate).reversed()).collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
@@ -507,12 +466,7 @@ public class FpldleServiceImpl implements IFpldleService {
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
         Map<String, Map<String, String>> hashMap = Maps.newHashMap();
         RedisUtils.getHashByKey(key).forEach((k, v) -> hashMap.put(k.toString(), (Map<String, String>) v));
-        return hashMap.entrySet()
-                .stream()
-                .filter(o -> !StringUtils.equals(today, o.getKey()))
-                .map(o -> new RecordData().setOpenId(openId).setDate(o.getKey()).setResult(this.getUserDailyLastResult(o.getValue())).setTryTimes(o.getValue().size()).setSolve(this.userDailySolve(o.getKey(), o.getValue())))
-                .sorted(Comparator.comparing(RecordData::getDate).reversed())
-                .collect(Collectors.toList());
+        return hashMap.entrySet().stream().filter(o -> !StringUtils.equals(today, o.getKey())).map(o -> new RecordData().setOpenId(openId).setDate(o.getKey()).setResult(this.getUserDailyLastResult(o.getValue())).setTryTimes(o.getValue().size()).setSolve(this.userDailySolve(o.getKey(), o.getValue()))).sorted(Comparator.comparing(RecordData::getDate).reversed()).collect(Collectors.toList());
     }
 
     private String getUserDailyLastResult(Map<String, String> resultMap) {
@@ -559,32 +513,22 @@ public class FpldleServiceImpl implements IFpldleService {
             return;
         }
         // code list
-        List<Integer> codeList = dictionaryMap.values()
-                .stream()
-                .map(FpldleData::getCode)
-                .collect(Collectors.toList());
+        List<Integer> codeList = dictionaryMap.values().stream().map(FpldleData::getCode).collect(Collectors.toList());
         // get picture
         ForkJoinPool forkJoinPool = new ForkJoinPool(10);
-        List<CompletableFuture<Map<String, String>>> future = codeList.stream()
-                .map(o -> CompletableFuture.supplyAsync(() -> this.getPicture(o), forkJoinPool))
-                .collect(Collectors.toList());
-        List<Map<String, String>> pictureMapList = future
-                .stream()
-                .map(CompletableFuture::join)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        List<CompletableFuture<Map<String, String>>> future = codeList.stream().map(o -> CompletableFuture.supplyAsync(() -> this.getPicture(o), forkJoinPool)).collect(Collectors.toList());
+        List<Map<String, String>> pictureMapList = future.stream().map(CompletableFuture::join).filter(Objects::nonNull).collect(Collectors.toList());
         // redis
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.PICTURE);
         Map<String, Map<String, Object>> cacheMap = Maps.newHashMap();
         Map<String, Object> valueMap = Maps.newHashMap();
-        pictureMapList.forEach(o ->
-                o.keySet().forEach(code -> {
-                    String base64String = o.getOrDefault(code, null);
-                    if (StringUtils.isEmpty(base64String)) {
-                        return;
-                    }
-                    valueMap.put(code, base64String);
-                }));
+        pictureMapList.forEach(o -> o.keySet().forEach(code -> {
+            String base64String = o.getOrDefault(code, null);
+            if (StringUtils.isEmpty(base64String)) {
+                return;
+            }
+            valueMap.put(code, base64String);
+        }));
         cacheMap.put(key, valueMap);
         RedisUtils.pipelineHashCache(cacheMap, -1, null);
     }
@@ -608,12 +552,7 @@ public class FpldleServiceImpl implements IFpldleService {
         RedisUtils.getHashByKey(key).forEach((k, v) -> {
             String openId = k.toString();
             Map<String, UserStatisticData> userStatisticMap = (Map<String, UserStatisticData>) v;
-            UserStatisticData data = userStatisticMap.keySet()
-                    .stream()
-                    .filter(o -> StringUtils.equals(fullDate, o))
-                    .map(o -> userStatisticMap.getOrDefault(o, null))
-                    .findFirst()
-                    .orElse(null);
+            UserStatisticData data = userStatisticMap.keySet().stream().filter(o -> StringUtils.equals(fullDate, o)).map(o -> userStatisticMap.getOrDefault(o, null)).findFirst().orElse(null);
             if (data == null || data.getConsecutiveHitDays() <= 0) {
                 return;
             }
@@ -623,31 +562,16 @@ public class FpldleServiceImpl implements IFpldleService {
         Map<Integer, Integer> rankMap = this.sortConsecutiveHitRank(new ArrayList<>(consecutiveMap.values())); // openId -> rank
         // return list
         List<ConsecutiveHitData> list = Lists.newArrayList();
-        consecutiveMap.forEach((openId, data) ->
-                list.add(
-                        new ConsecutiveHitData()
-                                .setRank(rankMap.get(data.getConsecutiveHitDays()))
-                                .setOpenId(openId)
-                                .setNickName(data.getNickName())
-                                .setAvatarUrl(data.getAvatarUrl())
-                                .setConsecutiveDays(data.getConsecutiveHitDays())
-                ));
-        return list
-                .stream()
-                .sorted(Comparator.comparing(ConsecutiveHitData::getConsecutiveDays).reversed())
-                .collect(Collectors.toList());
+        consecutiveMap.forEach((openId, data) -> list.add(new ConsecutiveHitData().setRank(rankMap.get(data.getConsecutiveHitDays())).setOpenId(openId).setNickName(data.getNickName()).setAvatarUrl(data.getAvatarUrl()).setConsecutiveDays(data.getConsecutiveHitDays())));
+        return list.stream().filter(o -> !StringUtils.equals("null", o.getNickName()) && !StringUtils.equals("null", o.getAvatarUrl())).sorted(Comparator.comparing(ConsecutiveHitData::getRank)).collect(Collectors.toList());
     }
 
     private Map<Integer, Integer> sortConsecutiveHitRank(List<UserStatisticData> list) {
-        Map<Integer, Integer> rankMap = Maps.newHashMap(); // openId -> rank
+        Map<Integer, Integer> rankMap = Maps.newHashMap();
         Map<Integer, Integer> rankCountMap = Maps.newLinkedHashMap();
-        list
-                .stream()
-                .sorted(Comparator.comparing(UserStatisticData::getConsecutiveHitDays).reversed())
-                .forEachOrdered(o -> this.setRankMapValue(o.getConsecutiveHitDays(), rankCountMap));
+        list.stream().sorted(Comparator.comparing(UserStatisticData::getConsecutiveHitDays).reversed()).forEachOrdered(o -> this.setRankMapValue(o.getConsecutiveHitDays(), rankCountMap));
         int index = 1;
-        for (Integer key :
-                rankCountMap.keySet()) {
+        for (Integer key : rankCountMap.keySet()) {
             rankMap.put(key, index);
             index += rankCountMap.get(key);
         }
@@ -664,7 +588,58 @@ public class FpldleServiceImpl implements IFpldleService {
 
     @Override
     public List<AverageHitTimesData> getAverageHitTimesRank(String date) {
-        return null;
+        // get hit times map
+        Multimap<String, UserStatisticData> hitTimesMultiMap = HashMultimap.create();
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.USER_STATISTIC);
+        RedisUtils.getHashByKey(key).forEach((k, v) -> {
+            String openId = k.toString();
+            Map<String, UserStatisticData> userStatisticMap = (Map<String, UserStatisticData>) v;
+            String lastDay = userStatisticMap.keySet().stream().max(Comparator.naturalOrder()).orElse(null);
+            if (StringUtils.isEmpty(lastDay) || LocalDate.parse(CommonUtils.getDateFromShortDay(lastDay)).isBefore(LocalDate.parse("2022-03-01"))) {
+                return;
+            }
+            userStatisticMap.values().stream().filter(UserStatisticData::isSolve).forEach(o -> hitTimesMultiMap.put(openId, o));
+        });
+        // get average hit times list
+        List<AverageHitTimesData> list = hitTimesMultiMap.keySet().stream().map(openId -> {
+            List<UserStatisticData> userStatisticList = new ArrayList<>(hitTimesMultiMap.get(openId));
+            if (CollectionUtils.isEmpty(userStatisticList)) {
+                return null;
+            }
+            UserStatisticData first = userStatisticList.stream().findFirst().orElse(null);
+            if (first == null) {
+                return null;
+            }
+            return new AverageHitTimesData().setRank(0).setOpenId(openId).setNickName(first.getNickName()).setAvatarUrl(first.getAvatarUrl()).setAverageHitTimes(userStatisticList.stream().mapToInt(UserStatisticData::getTryTimes).sum() / userStatisticList.size());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        // sort rank
+        Map<Integer, Integer> rankMap = this.sortHitTimesRank(list);
+        // return list
+        list.forEach(o -> o.setRank(rankMap.get(o.getAverageHitTimes())));
+        return list.stream().filter(o -> StringUtils.isNotEmpty(o.getNickName()) && StringUtils.isNotEmpty(o.getAvatarUrl())).sorted(Comparator.comparing(AverageHitTimesData::getRank)).collect(Collectors.toList());
+    }
+
+    private Map<Integer, Integer> sortHitTimesRank(List<AverageHitTimesData> list) {
+        Map<Integer, Integer> rankMap = Maps.newHashMap();
+        Map<Integer, Integer> rankCountMap = Maps.newLinkedHashMap();
+        list.stream().sorted(Comparator.comparing(AverageHitTimesData::getAverageHitTimes)).forEachOrdered(o -> this.setRankMapValue(o.getAverageHitTimes(), rankCountMap));
+        int index = 1;
+        for (Integer key : rankCountMap.keySet()) {
+            rankMap.put(key, index);
+            index += rankCountMap.get(key);
+        }
+        return rankMap;
+    }
+
+    @Override
+    public FpldleData getFpldleByName(String name) {
+        String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.DAILY);
+        Map<String, FpldleData> map = Maps.newHashMap(); // name -> data
+        RedisUtils.getHashByKey(key).forEach((k, v) -> {
+            FpldleData data = (FpldleData) v;
+            map.put(data.getName(), data);
+        });
+        return map.getOrDefault(name, null);
     }
 
 }

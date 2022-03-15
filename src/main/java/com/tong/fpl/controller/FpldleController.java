@@ -2,9 +2,7 @@ package com.tong.fpl.controller;
 
 import com.tong.fpl.api.IFpldleApi;
 import com.tong.fpl.constant.Constant;
-import com.tong.fpl.domain.FpldleData;
-import com.tong.fpl.domain.FpldleHistoryData;
-import com.tong.fpl.domain.RecordData;
+import com.tong.fpl.domain.*;
 import com.tong.fpl.util.CommonUtils;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -86,6 +84,21 @@ public class FpldleController {
     @RequestMapping("/getRecordList")
     public List<RecordData> getRecordList(@RequestParam String openId) {
         return this.fpldleApi.getRecordList(openId);
+    }
+
+    @RequestMapping("/getConsecutiveHitRank")
+    public List<ConsecutiveHitData> getConsecutiveHitRank(@RequestParam String date) {
+        return this.fpldleApi.getConsecutiveHitRank(date);
+    }
+
+    @RequestMapping("/getAverageHitTimesRank")
+    public List<AverageHitTimesData> getAverageHitTimesRank(@RequestParam String date) {
+        return this.fpldleApi.getAverageHitTimesRank(date);
+    }
+
+    @RequestMapping("/getFpldleByName")
+    public FpldleData getFpldleByName(@RequestParam String name) {
+        return this.fpldleApi.getFpldleByName(name);
     }
 
 }

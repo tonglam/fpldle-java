@@ -68,7 +68,7 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"odU8S419zNFdTEBDVSRrjFS-roVU, 0314"})
+    @CsvSource({"odU8S419zNFdTEBDVSRrjFS-roVU, 20220315"})
     void getDateVerifyList(String openId, String date) {
         List<String> list = this.fpldleService.getDateVerifyList(openId, date);
         System.out.println(1);
@@ -272,21 +272,30 @@ public class FpldleTest extends FpldleApplicationTests {
 
     @ParameterizedTest
     @CsvSource({"odU8S40lnaBAPO1E_kDcfwcDsdiY, GunnersRose, https://thirdwx.qlogo.cn/mmopen/vi_32/4kET70zdREBcgInTRBicFjficTXuOxLPzofibVtd0Rx9IIQic45sjsQ38NXAz2zLltVeHsQY1dDY3y7m0x37O8yGIg/132"})
-    void inserUserInfo(String openId, String nickName, String avatarUrl) {
+    void insertUserInfo(String openId, String nickName, String avatarUrl) {
         this.fpldleService.insertUserInfo(openId, nickName, avatarUrl);
     }
 
     @ParameterizedTest
     @CsvSource({"0314"})
     void getConsecutiveHitRank(String date) {
+        long start = System.currentTimeMillis();
         List<ConsecutiveHitData> list = this.fpldleService.getConsecutiveHitRank(date);
-        System.out.println(1);
+        long end = System.currentTimeMillis();
+        System.out.println((end - start) / 1000 + "ms");
     }
 
     @ParameterizedTest
     @CsvSource({"0314"})
     void getAverageHitTimesRank(String date) {
         List<AverageHitTimesData> list = this.fpldleService.getAverageHitTimesRank(date);
+        System.out.println(1);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"EVANS"})
+    void getFpldleByName(String name) {
+        FpldleData data = this.fpldleService.getFpldleByName(name);
         System.out.println(1);
     }
 

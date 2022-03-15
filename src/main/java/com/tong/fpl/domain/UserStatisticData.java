@@ -20,7 +20,5 @@ public class UserStatisticData {
     private int totalHitTimes;
     private int consecutiveGuessDays;
     private int consecutiveHitDays;
-    private String consecutiveStartDay;
-    private String consecutiveEndDay;
 
 }

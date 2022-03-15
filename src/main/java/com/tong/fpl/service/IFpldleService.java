@@ -146,4 +146,12 @@ public interface IFpldleService {
      */
     List<AverageHitTimesData> getAverageHitTimesRank(String date);
 
+    /**
+     * 根据谜底查询data
+     *
+     * @param name 谜底
+     * @return data
+     */
+    FpldleData getFpldleByName(String name);
+
 }

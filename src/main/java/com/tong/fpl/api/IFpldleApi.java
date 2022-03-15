@@ -1,8 +1,6 @@
 package com.tong.fpl.api;
 
-import com.tong.fpl.domain.FpldleData;
-import com.tong.fpl.domain.FpldleHistoryData;
-import com.tong.fpl.domain.RecordData;
+import com.tong.fpl.domain.*;
 
 import java.util.List;
 
@@ -90,5 +88,23 @@ public interface IFpldleApi {
      * @return recode list
      */
     List<RecordData> getRecordList(String openId);
+
+    /**
+     * 获取连续命中天数排行榜
+     */
+    List<ConsecutiveHitData> getConsecutiveHitRank(String date);
+
+    /**
+     * 获取平均命中次数排行榜
+     */
+    List<AverageHitTimesData> getAverageHitTimesRank(String date);
+
+    /**
+     * 根据谜底查询data
+     *
+     * @param name 谜底
+     * @return data
+     */
+    FpldleData getFpldleByName(String name);
 
 }

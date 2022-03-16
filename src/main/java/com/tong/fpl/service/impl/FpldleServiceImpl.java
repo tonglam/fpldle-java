@@ -334,7 +334,14 @@ public class FpldleServiceImpl implements IFpldleService {
         String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
         RedisUtils.getKeyPattern(resultPatter).forEach(resultKey -> {
             String openId = StringUtils.substringAfterLast(resultKey, "::");
-            RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDailyResultTable.put(openId, k.toString(), new RecordData().setDate(k.toString()).setResult(this.getUserDailyLastResult((Map<String, String>) v)).setTryTimes(((Map<?, ?>) v).size()).setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))));
+            RedisUtils.getHashByKey(resultKey).forEach((k, v) ->
+                    userDailyResultTable.put(openId, k.toString(),
+                            new RecordData()
+                                    .setDate(k.toString())
+                                    .setResult(this.getUserDailyLastResult((Map<String, String>) v))
+                                    .setTryTimes(((Map<?, ?>) v).size())
+                                    .setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v)))
+            );
         });
         // get user
         Map<String, UserInfo> userInfoMap = Maps.newHashMap(); // openId -> userInfo
@@ -346,11 +353,14 @@ public class FpldleServiceImpl implements IFpldleService {
         Map<String, Object> valueMap = Maps.newHashMap();
         // every user
         userDailyResultTable.rowKeySet().forEach(openId -> {
-            RedisUtils.getHashByKey(key).forEach((k, v) -> valueMap.put(openId, v));
             Map<String, UserStatisticData> statMap = Maps.newHashMap();
             // every date
             for (String statDate : userDailyResultTable.columnKeySet()) {
-                statMap.put(statDate, this.initUserStatisticData(openId, statDate, userDailyResultTable.row(openId), userInfoMap));
+                UserStatisticData data = this.initUserStatisticData(openId, statDate, userDailyResultTable.row(openId), userInfoMap);
+                if (data == null) {
+                    continue;
+                }
+                statMap.put(statDate, data);
                 valueMap.put(openId, statMap);
             }
         });
@@ -360,16 +370,65 @@ public class FpldleServiceImpl implements IFpldleService {
 
     private UserStatisticData initUserStatisticData(String openId, String date, Map<String, RecordData> userRecordMap, Map<String, UserInfo> userInfoMap) {
         LocalDate localDate = LocalDate.parse(CommonUtils.getDateFromShortDay(date));
-        List<RecordData> recordList = userRecordMap.values().stream().filter(o -> LocalDate.parse(CommonUtils.getDateFromShortDay(o.getDate())).isBefore(localDate)).collect(Collectors.toList());
+        List<RecordData> recordList = userRecordMap.values()
+                .stream()
+                .filter(o -> LocalDate.parse(CommonUtils.getDateFromShortDay(o.getDate())).isBefore(localDate))
+                .collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(recordList)) {
+            return null;
+        }
+        String lastDate = recordList
+                .stream()
+                .sorted(Comparator.comparing(RecordData::getDate).reversed())
+                .map(RecordData::getDate)
+                .findFirst()
+                .orElse("");
+        if (StringUtils.isEmpty(lastDate)) {
+            return null;
+        }
+        RecordData lastData = userRecordMap.getOrDefault(lastDate, null);
+        if (lastData == null) {
+            return null;
+        }
         UserInfo userInfo = userInfoMap.getOrDefault(openId, new UserInfo());
-        String lastDate = userRecordMap.keySet().stream().max(Comparator.naturalOrder()).orElse("");
-        RecordData lastData = userRecordMap.get(lastDate);
-        return new UserStatisticData().setOpenId(openId).setNickName(userInfo.getNickName()).setAvatarUrl(userInfo.getAvatarUrl()).setTryTimes(lastData.getTryTimes()).setTotalGuessDays(recordList.size()).setSolve(lastData.isSolve()).setTotalTryTimes(recordList.stream().mapToInt(RecordData::getTryTimes).sum()).setTotalHitTimes(recordList.stream().mapToInt(o -> {
-            if (o.isSolve()) {
-                return 1;
-            }
-            return 0;
-        }).sum()).setConsecutiveGuessDays(this.calcConsecutiveGuessDays(lastDate, recordList.stream().map(RecordData::getDate).collect(Collectors.toList()))).setConsecutiveHitDays(this.calcConsecutiveHitDays(lastDate, recordList.stream().filter(RecordData::isSolve).map(RecordData::getDate).collect(Collectors.toList())));
+        return new UserStatisticData()
+                .setOpenId(openId)
+                .setNickName(userInfo.getNickName())
+                .setAvatarUrl(userInfo.getAvatarUrl())
+                .setTryTimes(lastData.getTryTimes())
+                .setTotalGuessDays(recordList.size())
+                .setSolve(lastData.isSolve())
+                .setTotalTryTimes(
+                        recordList
+                                .stream()
+                                .mapToInt(RecordData::getTryTimes)
+                                .sum()
+                )
+                .setTotalHitTimes(
+                        recordList
+                                .stream()
+                                .mapToInt(o -> {
+                                    if (o.isSolve()) {
+                                        return 1;
+                                    }
+                                    return 0;
+                                })
+                                .sum()
+                )
+                .setConsecutiveGuessDays(
+                        this.calcConsecutiveGuessDays(lastDate,
+                                recordList
+                                        .stream()
+                                        .map(RecordData::getDate)
+                                        .collect(Collectors.toList()))
+                )
+                .setConsecutiveHitDays(this.calcConsecutiveHitDays(lastDate,
+                        recordList
+                                .stream()
+                                .filter(RecordData::isSolve)
+                                .map(RecordData::getDate)
+                                .collect(Collectors.toList()))
+                );
     }
 
     private int calcConsecutiveGuessDays(String lastDate, List<String> guessDaysList) {

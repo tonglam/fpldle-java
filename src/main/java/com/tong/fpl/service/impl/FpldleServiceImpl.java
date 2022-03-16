@@ -739,7 +739,7 @@ public class FpldleServiceImpl implements IFpldleService {
         );
         return list
                 .stream()
-                .filter(o -> !StringUtils.equals("null", o.getNickName()))
+                .filter(o -> StringUtils.isNotEmpty(o.getNickName()))
                 .sorted(Comparator.comparing(LastDayHitData::getRank))
                 .collect(Collectors.toList());
     }
@@ -794,7 +794,7 @@ public class FpldleServiceImpl implements IFpldleService {
         );
         return list
                 .stream()
-                .filter(o -> !StringUtils.equals("null", o.getNickName()))
+                .filter(o -> StringUtils.isNotEmpty(o.getNickName()))
                 .sorted(Comparator.comparing(ConsecutiveHitData::getRank))
                 .collect(Collectors.toList());
     }

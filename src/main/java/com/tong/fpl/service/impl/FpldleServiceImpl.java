@@ -543,6 +543,7 @@ public class FpldleServiceImpl implements IFpldleService {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<ConsecutiveHitData> getConsecutiveHitRank(String date) {
         // get consecutive map
@@ -586,6 +587,7 @@ public class FpldleServiceImpl implements IFpldleService {
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<AverageHitTimesData> getAverageHitTimesRank(String date) {
         // get hit times map

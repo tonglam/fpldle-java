@@ -90,12 +90,26 @@ public interface IFpldleApi {
     List<RecordData> getRecordList(String openId);
 
     /**
+     * 获取昨日命中排行榜
+     *
+     * @param date 日期
+     * @return list
+     */
+    List<LastDayHitData> getLastDayHitRank(String date);
+
+    /**
      * 获取连续命中天数排行榜
+     *
+     * @param date 日期
+     * @return list
      */
     List<ConsecutiveHitData> getConsecutiveHitRank(String date);
 
     /**
      * 获取平均命中次数排行榜
+     *
+     * @param date 日期
+     * @return list
      */
     List<AverageHitTimesData> getAverageHitTimesRank(String date);
 

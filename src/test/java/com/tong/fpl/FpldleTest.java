@@ -277,6 +277,15 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @ParameterizedTest
+    @CsvSource({"0316"})
+    void getLastDayHitRank(String date) {
+        long start = System.currentTimeMillis();
+        List<LastDayHitData> list = this.fpldleService.getLastDayHitRank(date);
+        long end = System.currentTimeMillis();
+        System.out.println((end - start) / 1000 + "ms");
+    }
+
+    @ParameterizedTest
     @CsvSource({"0314"})
     void getConsecutiveHitRank(String date) {
         long start = System.currentTimeMillis();
@@ -288,8 +297,10 @@ public class FpldleTest extends FpldleApplicationTests {
     @ParameterizedTest
     @CsvSource({"0314"})
     void getAverageHitTimesRank(String date) {
+        long start = System.currentTimeMillis();
         List<AverageHitTimesData> list = this.fpldleService.getAverageHitTimesRank(date);
-        System.out.println(1);
+        long end = System.currentTimeMillis();
+        System.out.println((end - start) / 1000 + "ms");
     }
 
     @ParameterizedTest

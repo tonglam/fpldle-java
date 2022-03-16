@@ -86,6 +86,11 @@ public class FpldleController {
         return this.fpldleApi.getRecordList(openId);
     }
 
+    @RequestMapping("/getLastDayHitRank")
+    public List<LastDayHitData> getLastDayHitRank(@RequestParam String date) {
+        return this.fpldleApi.getLastDayHitRank(date);
+    }
+
     @RequestMapping("/getConsecutiveHitRank")
     public List<ConsecutiveHitData> getConsecutiveHitRank(@RequestParam String date) {
         return this.fpldleApi.getConsecutiveHitRank(date);

@@ -879,9 +879,12 @@ public class FpldleServiceImpl implements IFpldleService {
                                             .count()
                             )
                             .setAverageHitTimes(
-                                    userStatisticList
-                                            .stream()
-                                            .mapToInt(UserStatisticData::getTryTimes).sum() / userStatisticList.size()
+                                    NumberUtil.div(
+                                            userStatisticList
+                                                    .stream()
+                                                    .mapToInt(UserStatisticData::getTryTimes)
+                                                    .sum(),
+                                            userStatisticList.size(), 1)
                             );
                 })
                 .filter(Objects::nonNull)

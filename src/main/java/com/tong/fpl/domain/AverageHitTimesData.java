@@ -15,6 +15,6 @@ public class AverageHitTimesData {
     private String nickName;
     private String avatarUrl;
     private int hitTimes;
-    private int averageHitTimes;
+    private double averageHitTimes;
 
 }

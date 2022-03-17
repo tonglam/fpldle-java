@@ -72,18 +72,18 @@ public class FpldleApiImpl implements IFpldleApi {
     }
 
     @Override
-    public List<LastDayHitData> getLastDayHitRank(String date) {
-        return this.fpldleService.getLastDayHitRank(date);
+    public List<LastDayHitData> getLastDayHitRank() {
+        return this.fpldleService.getLastDayHitRank();
     }
 
     @Override
-    public List<ConsecutiveHitData> getConsecutiveHitRank(String date) {
-        return this.fpldleService.getConsecutiveHitRank(date);
+    public List<ConsecutiveHitData> getConsecutiveHitRank() {
+        return this.fpldleService.getConsecutiveHitRank();
     }
 
     @Override
-    public List<AverageHitTimesData> getAverageHitTimesRank(String date) {
-        return this.fpldleService.getAverageHitTimesRank(date);
+    public List<AverageHitTimesData> getAverageHitTimesRank() {
+        return this.fpldleService.getAverageHitTimesRank();
     }
 
     @Override

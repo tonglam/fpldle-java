@@ -19,6 +19,10 @@ public class UserStatisticData {
     private int totalTryTimes;
     private int totalHitTimes;
     private int consecutiveGuessDays;
+    private String consecutiveGuessStartDay;
+    private String consecutiveGuessEndDay;
     private int consecutiveHitDays;
+    private String consecutiveHitStartDay;
+    private String consecutiveHitEndDay;
 
 }

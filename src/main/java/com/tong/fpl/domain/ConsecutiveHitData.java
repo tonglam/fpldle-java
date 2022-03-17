@@ -15,5 +15,7 @@ public class ConsecutiveHitData {
     private String nickName;
     private String avatarUrl;
     private int consecutiveDays;
+    private String consecutiveStartDay;
+    private String consecutiveEndDay;
 
 }

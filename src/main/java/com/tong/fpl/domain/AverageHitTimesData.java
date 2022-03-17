@@ -14,6 +14,7 @@ public class AverageHitTimesData {
     private String openId;
     private String nickName;
     private String avatarUrl;
+    private int hitTimes;
     private int averageHitTimes;
 
 }

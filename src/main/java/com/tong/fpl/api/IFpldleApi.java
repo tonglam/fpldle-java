@@ -92,26 +92,23 @@ public interface IFpldleApi {
     /**
      * 获取昨日命中排行榜
      *
-     * @param date 日期
      * @return list
      */
-    List<LastDayHitData> getLastDayHitRank(String date);
+    List<LastDayHitData> getLastDayHitRank();
 
     /**
      * 获取连续命中天数排行榜
      *
-     * @param date 日期
      * @return list
      */
-    List<ConsecutiveHitData> getConsecutiveHitRank(String date);
+    List<ConsecutiveHitData> getConsecutiveHitRank();
 
     /**
      * 获取平均命中次数排行榜
      *
-     * @param date 日期
      * @return list
      */
-    List<AverageHitTimesData> getAverageHitTimesRank(String date);
+    List<AverageHitTimesData> getAverageHitTimesRank();
 
     /**
      * 根据谜底查询data

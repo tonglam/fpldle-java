@@ -276,31 +276,22 @@ public class FpldleTest extends FpldleApplicationTests {
         this.fpldleService.insertUserInfo(openId, nickName, avatarUrl);
     }
 
-    @ParameterizedTest
-    @CsvSource({"0316"})
-    void getLastDayHitRank(String date) {
-        long start = System.currentTimeMillis();
-        List<LastDayHitData> list = this.fpldleService.getLastDayHitRank(date);
-        long end = System.currentTimeMillis();
-        System.out.println((end - start) / 1000 + "ms");
+    @Test
+    void getLastDayHitRank() {
+        List<LastDayHitData> list = this.fpldleService.getLastDayHitRank();
+        System.out.println(1);
     }
 
-    @ParameterizedTest
-    @CsvSource({"0314"})
-    void getConsecutiveHitRank(String date) {
-        long start = System.currentTimeMillis();
-        List<ConsecutiveHitData> list = this.fpldleService.getConsecutiveHitRank(date);
-        long end = System.currentTimeMillis();
-        System.out.println((end - start) / 1000 + "ms");
+    @Test
+    void getConsecutiveHitRank() {
+        List<ConsecutiveHitData> list = this.fpldleService.getConsecutiveHitRank();
+        System.out.println(1);
     }
 
-    @ParameterizedTest
-    @CsvSource({"0314"})
-    void getAverageHitTimesRank(String date) {
-        long start = System.currentTimeMillis();
-        List<AverageHitTimesData> list = this.fpldleService.getAverageHitTimesRank(date);
-        long end = System.currentTimeMillis();
-        System.out.println((end - start) / 1000 + "ms");
+    @Test
+    void getAverageHitTimesRank() {
+        List<AverageHitTimesData> list = this.fpldleService.getAverageHitTimesRank();
+        System.out.println(1);
     }
 
     @ParameterizedTest

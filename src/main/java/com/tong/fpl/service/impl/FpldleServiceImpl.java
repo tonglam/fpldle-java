@@ -746,7 +746,7 @@ public class FpldleServiceImpl implements IFpldleService {
         );
         return list
                 .stream()
-                .sorted(Comparator.comparing(LastDayHitData::getRank))
+                .sorted(Comparator.comparing(LastDayHitData::getRank).thenComparing(LastDayHitData::getNickName))
                 .collect(Collectors.toList());
     }
 
@@ -802,7 +802,7 @@ public class FpldleServiceImpl implements IFpldleService {
         );
         return list
                 .stream()
-                .sorted(Comparator.comparing(ConsecutiveHitData::getRank))
+                .sorted(Comparator.comparing(ConsecutiveHitData::getRank).thenComparing(ConsecutiveHitData::getNickName))
                 .collect(Collectors.toList());
     }
 
@@ -896,7 +896,7 @@ public class FpldleServiceImpl implements IFpldleService {
         return list
                 .stream()
                 .filter(o -> StringUtils.isNotEmpty(o.getNickName()))
-                .sorted(Comparator.comparing(AverageHitTimesData::getRank))
+                .sorted(Comparator.comparing(AverageHitTimesData::getRank).thenComparing(AverageHitTimesData::getNickName))
                 .collect(Collectors.toList());
     }
 
@@ -905,7 +905,10 @@ public class FpldleServiceImpl implements IFpldleService {
         Map<String, Integer> rankCountMap = Maps.newLinkedHashMap();
         list
                 .stream()
-                .sorted(Comparator.comparing(AverageHitTimesData::getHitTimes).reversed().thenComparing(AverageHitTimesData::getAverageHitTimes))
+                .sorted(
+                        Comparator.comparing(AverageHitTimesData::getHitTimes).reversed()
+                                .thenComparing(AverageHitTimesData::getAverageHitTimes)
+                )
                 .forEachOrdered(o -> this.setHitTimeRankMapValue(StringUtils.joinWith("-", o.getHitTimes(), o.getAverageHitTimes()), rankCountMap));
         int index = 1;
         for (String key : rankCountMap.keySet()) {

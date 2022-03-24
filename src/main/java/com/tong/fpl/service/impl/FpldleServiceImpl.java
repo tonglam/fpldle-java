@@ -317,15 +317,25 @@ public class FpldleServiceImpl implements IFpldleService {
     public void insertUserStatistic() {
         // get daily data
         Table<String, String, RecordData> userDailyResultTable = HashBasedTable.create(); // openId -> date -> map(tryTimes -> result)
-        String resultPatter = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
-        RedisUtils.getKeyPattern(resultPatter).forEach(resultKey -> {
-            String openId = StringUtils.substringAfterLast(resultKey, "::");
-            RedisUtils.getHashByKey(resultKey).forEach((k, v) -> userDailyResultTable.put(openId, k.toString(),
-                    new RecordData()
-                            .setDate(k.toString())
-                            .setResult(this.getUserDailyLastResult((Map<String, String>) v))
-                            .setTryTimes(((Map<?, ?>) v).size())
-                            .setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))));
+        String resultPattern = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT);
+        // openId list
+        List<String> openIdList = Lists.newArrayList();
+        RedisUtils.getKeyPattern(resultPattern).forEach(resultKey -> {
+            openIdList.add(StringUtils.substringAfterLast(resultKey, "::"));
+        });
+        if (CollectionUtils.isEmpty(openIdList)) {
+            return;
+        }
+        // openId result
+        openIdList.forEach(openId -> {
+            String resultKey = StringUtils.joinWith("::", resultPattern, openId);
+            RedisUtils.getHashByKey(resultKey).forEach((k, v) ->
+                    userDailyResultTable.put(openId, k.toString(),
+                            new RecordData()
+                                    .setDate(k.toString())
+                                    .setResult(this.getUserDailyLastResult((Map<String, String>) v))
+                                    .setTryTimes(((Map<?, ?>) v).size())
+                                    .setSolve(this.userDailySolve(k.toString(), (Map<String, String>) v))));
         });
         // get user
         Map<String, UserInfo> userInfoMap = Maps.newHashMap(); // openId -> userInfo
@@ -370,8 +380,8 @@ public class FpldleServiceImpl implements IFpldleService {
         if (StringUtils.isEmpty(lastDate)) {
             return null;
         }
-        RecordData lastData = userRecordMap.getOrDefault(lastDate, null);
-        if (lastData == null) {
+        RecordData dateData = userRecordMap.getOrDefault(date, null);
+        if (dateData == null) {
             return null;
         }
         UserInfo userInfo = userInfoMap.getOrDefault(openId, new UserInfo());
@@ -379,9 +389,9 @@ public class FpldleServiceImpl implements IFpldleService {
                 .setOpenId(openId)
                 .setNickName(userInfo.getNickName())
                 .setAvatarUrl(userInfo.getAvatarUrl())
-                .setTryTimes(lastData.getTryTimes())
+                .setTryTimes(dateData.getTryTimes())
                 .setTotalGuessDays(recordList.size())
-                .setSolve(lastData.isSolve())
+                .setSolve(dateData.isSolve())
                 .setTotalTryTimes(
                         recordList
                                 .stream()

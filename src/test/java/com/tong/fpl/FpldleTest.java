@@ -123,6 +123,42 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @Test
+    void insertDictionaryPictues() {
+        this.fpldleService.insertDictionaryPictures();
+    }
+
+    @ParameterizedTest
+    @CsvSource({"odU8S40lnaBAPO1E_kDcfwcDsdiY, GunnersRose, https://thirdwx.qlogo.cn/mmopen/vi_32/4kET70zdREBcgInTRBicFjficTXuOxLPzofibVtd0Rx9IIQic45sjsQ38NXAz2zLltVeHsQY1dDY3y7m0x37O8yGIg/132"})
+    void insertUserInfo(String openId, String nickName, String avatarUrl) {
+        this.fpldleService.insertUserInfo(openId, nickName, avatarUrl);
+    }
+
+    @Test
+    void getLastDayHitRank() {
+        List<LastDayHitData> list = this.fpldleService.getLastDayHitRank();
+        System.out.println(1);
+    }
+
+    @Test
+    void getConsecutiveHitRank() {
+        List<ConsecutiveHitData> list = this.fpldleService.getConsecutiveHitRank();
+        System.out.println(1);
+    }
+
+    @Test
+    void getAverageHitTimesRank() {
+        List<AverageHitTimesData> list = this.fpldleService.getAverageHitTimesRank();
+        System.out.println(1);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"EVANS"})
+    void getFpldleByName(String name) {
+        FpldleData data = this.fpldleService.getFpldleByName(name);
+        System.out.println(1);
+    }
+
+    @Test
     void transfers() {
         // user
         Multimap<String, String> userMap = HashMultimap.create(); // user -> openId
@@ -263,42 +299,6 @@ public class FpldleTest extends FpldleApplicationTests {
         f.put(65, 76);
         map.put(6, f);
         return map;
-    }
-
-    @Test
-    void insertDictionaryPictues() {
-        this.fpldleService.insertDictionaryPictures();
-    }
-
-    @ParameterizedTest
-    @CsvSource({"odU8S40lnaBAPO1E_kDcfwcDsdiY, GunnersRose, https://thirdwx.qlogo.cn/mmopen/vi_32/4kET70zdREBcgInTRBicFjficTXuOxLPzofibVtd0Rx9IIQic45sjsQ38NXAz2zLltVeHsQY1dDY3y7m0x37O8yGIg/132"})
-    void insertUserInfo(String openId, String nickName, String avatarUrl) {
-        this.fpldleService.insertUserInfo(openId, nickName, avatarUrl);
-    }
-
-    @Test
-    void getLastDayHitRank() {
-        List<LastDayHitData> list = this.fpldleService.getLastDayHitRank();
-        System.out.println(1);
-    }
-
-    @Test
-    void getConsecutiveHitRank() {
-        List<ConsecutiveHitData> list = this.fpldleService.getConsecutiveHitRank();
-        System.out.println(1);
-    }
-
-    @Test
-    void getAverageHitTimesRank() {
-        List<AverageHitTimesData> list = this.fpldleService.getAverageHitTimesRank();
-        System.out.println(1);
-    }
-
-    @ParameterizedTest
-    @CsvSource({"EVANS"})
-    void getFpldleByName(String name) {
-        FpldleData data = this.fpldleService.getFpldleByName(name);
-        System.out.println(1);
     }
 
 }

@@ -5,8 +5,6 @@ package com.tong.fpl.constant;
  */
 public class Constant {
 
-    public static final int maxTryTimes = 6;
-
     // date_format
     public static final String DATETIME = "yyyy-MM-dd HH:mm:ss";
     public static final String DATE = "yyyy-MM-dd";

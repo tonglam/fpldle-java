@@ -18,8 +18,8 @@ public class SimulateTest extends FpldleApplicationTests {
     private ISimulatedGuessingService simulatedGuessingService;
 
     @ParameterizedTest
-    @CsvSource({"20220325"})
-    private void simulate(String date) {
+    @CsvSource({"20220329"})
+    void simulate(String date) {
         long start = System.currentTimeMillis();
         String answer = this.simulatedGuessingService.simulate(date);
         long end = System.currentTimeMillis();
@@ -52,9 +52,21 @@ public class SimulateTest extends FpldleApplicationTests {
                 "20220321",
                 "20220322",
                 "20220323",
-                "20220324"
+                "20220324",
+                "20220325"
         );
         dayList.forEach(this::simulate);
+    }
+
+    @Test
+    void tesss() {
+        List<Long> list = Lists.newArrayList();
+        list.add(1L);
+        list.add(null);
+        list.add(2L);
+        long a = list.stream().reduce(Long::sum).orElse(0L);
+        System.out.println(1);
+
     }
 
 }

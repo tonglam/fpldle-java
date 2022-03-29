@@ -3,7 +3,6 @@ package com.tong.fpl.service.impl;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.NumberUtil;
 import com.google.common.collect.*;
-import com.tong.fpl.constant.Constant;
 import com.tong.fpl.domain.FpldleData;
 import com.tong.fpl.domain.FpldleHistoryData;
 import com.tong.fpl.service.IFpldleService;
@@ -39,7 +38,6 @@ public class SimulatedGuessingServiceImpl implements ISimulatedGuessingService {
      */
     @Override
     public String simulate(String date) {
-        int maxTimes = Constant.maxTryTimes;
         // daily
         FpldleData fpldleData = this.fpldleService.getDailyFpldle(date);
         if (fpldleData == null) {
@@ -88,7 +86,7 @@ public class SimulatedGuessingServiceImpl implements ISimulatedGuessingService {
             log.error("simulate guess, first guess empty");
             return "";
         }
-        String firstGuess = letterWordMap.get(firstGuessList);
+        String firstGuess = CommonUtils.letter2Word(firstGuessList);
         log.info("simulate guess, first guess:{}", firstGuess);
         // first verify
         this.verifyGuess(fpldle, fpldleMap, firstGuessList, hitMap, orderMultiMap, excludeList);
@@ -104,8 +102,8 @@ public class SimulatedGuessingServiceImpl implements ISimulatedGuessingService {
             return guess;
         }
         // simulate next guess
-        for (int i = 2; i < maxTimes + 1; i++) {
-            List<String> nextGuessList = this.simulateNextGuess(orderMultiMap, candidateList);
+        for (int i = 2; i < 99; i++) {
+            List<String> nextGuessList = this.simulateNextGuess(hitMap, orderMultiMap, candidateList);
             if (CollectionUtils.isEmpty(nextGuessList)) {
                 log.error("simulate guess, guess times:{}, guess empty", i);
                 return "";
@@ -185,6 +183,9 @@ public class SimulatedGuessingServiceImpl implements ISimulatedGuessingService {
                     if (i == j) {
                         continue;
                     }
+                    if (hitMap.containsValue(letter)) {
+                        continue;
+                    }
                     orderMultiMap.put(letter, j);
                 }
             } else {
@@ -238,6 +239,15 @@ public class SimulatedGuessingServiceImpl implements ISimulatedGuessingService {
             Table<Integer, String, List<String>> positionCandidateTable = this.createPositionTable(candidateList); // position -> letter -> list
             String[] orderLetters = orderMultiMap.keySet().toArray(new String[0]);
             for (String letter : orderLetters) {
+                // hit
+                if (hitMap.containsValue(letter) && orderMultiMap.containsKey(letter)) {
+                    orderMultiMap.removeAll(letter);
+                }
+                // exclude
+                if (excludeList.contains(letter) && orderMultiMap.containsKey(letter)) {
+                    orderMultiMap.removeAll(letter);
+                }
+                // position-letter
                 Integer[] positions = orderMultiMap.get(letter).toArray(new Integer[0]);
                 for (int position : positions) {
                     if (!positionCandidateTable.contains(position, letter)) {
@@ -249,38 +259,68 @@ public class SimulatedGuessingServiceImpl implements ISimulatedGuessingService {
         return candidateList;
     }
 
-    private List<String> simulateNextGuess(Multimap<String, Integer> orderMultiMap, List<String> candidateList) {
-        if (orderMultiMap.size() == 0) {
-            return CommonUtils.word2Letter(candidateList.get(0));
-        }
+    private List<String> simulateNextGuess(Map<Integer, String> hitMap, Multimap<String, Integer> orderMultiMap, List<String> candidateList) {
         Map<String, Double> wordPositionScoreMap = Maps.newHashMap(); // word -> score
         Table<String, Integer, Double> letterPositionScoreTable = HashBasedTable.create(); // letter -> position -> score
         Table<Integer, String, List<String>> positionCandidateTable = this.createPositionTable(candidateList); // position -> letter -> list
-        // collect letter score
-        for (String letter :
-                orderMultiMap.keySet()) {
-            Map<Integer, Integer> positionTimesMap = Maps.newHashMap(); // position -> times
-            orderMultiMap.get(letter).forEach(position -> {
-                int times = Objects.requireNonNull(positionCandidateTable.get(position, letter)).size();
-                positionTimesMap.put(position, times);
-            });
-            if (CollectionUtils.isEmpty(positionTimesMap)) {
-                continue;
-            }
-            this.calcPositionScore(letter, positionTimesMap, letterPositionScoreTable);
-        }
-        // collect word score
         candidateList.forEach(o -> {
-            Double score = 0d;
+            double score = 0d;
             List<String> letterList = CommonUtils.word2Letter(o);
-            for (int i = 0; i < letterList.size(); i++) {
-                String letter = letterList.get(i);
-                if (letterPositionScoreTable.contains(letter, i)) {
-                    score += letterPositionScoreTable.get(letter, i);
+            // a word contains different letters gets higher score
+            int differentCount = 0;
+            Map<String, Integer> letterCountMap = Maps.newHashMap();
+            for (String letter : letterList) {
+                int letterCount = 1;
+                if (letterCountMap.containsKey(letter)) {
+                    letterCount += letterCountMap.get(letter);
+                }
+                letterCountMap.put(letter, letterCount);
+            }
+            for (String letter :
+                    letterCountMap.keySet()) {
+                int times = letterCountMap.get(letter);
+                if (times == 1) {
+                    continue;
+                }
+                differentCount += times - 1;
+                if (hitMap.containsValue(letter)) {
+                    score += -0.2 * differentCount;
+                } else {
+                    score += -0.5 * differentCount;
                 }
             }
             wordPositionScoreMap.put(o, score);
         });
+        if (orderMultiMap.size() > 0) {
+            // collect letter score
+            for (String letter :
+                    orderMultiMap.keySet()) {
+                Map<Integer, Integer> positionTimesMap = Maps.newHashMap(); // position -> times
+                orderMultiMap.get(letter).forEach(position -> {
+                    int times = Objects.requireNonNull(positionCandidateTable.get(position, letter)).size();
+                    positionTimesMap.put(position, times);
+                });
+                if (CollectionUtils.isEmpty(positionTimesMap)) {
+                    continue;
+                }
+                this.calcPositionScore(letter, positionTimesMap, letterPositionScoreTable);
+            }
+            // collect word score
+            candidateList.forEach(o -> {
+                Double score = 0d;
+                if (wordPositionScoreMap.containsKey(o)) {
+                    score = wordPositionScoreMap.get(o);
+                }
+                List<String> letterList = CommonUtils.word2Letter(o);
+                for (int i = 0; i < letterList.size(); i++) {
+                    String letter = letterList.get(i);
+                    if (letterPositionScoreTable.contains(letter, i)) {
+                        score += letterPositionScoreTable.get(letter, i);
+                    }
+                }
+                wordPositionScoreMap.put(o, score);
+            });
+        }
         return wordPositionScoreMap.entrySet()
                 .stream()
                 .max(Map.Entry.comparingByValue())

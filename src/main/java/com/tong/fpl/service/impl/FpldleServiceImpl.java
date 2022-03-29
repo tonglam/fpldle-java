@@ -51,21 +51,20 @@ public class FpldleServiceImpl implements IFpldleService {
             Map<String, String> teamShortNameMap = this.redisCacheService.getTeamShortNameMap(season);
             this.redisCacheService.getPlayerSummaryMap(season).values()
                     .stream()
-                    .filter(o -> o.getEvent() == 1 && o.getSelected() > 100000)
+                    .filter(o -> o.getEvent() == 1 && o.getSelected() > 10000)
                     .forEach(o -> {
                         int element = o.getElement();
                         PlayerEntity playerEntity = playerMap.getOrDefault(String.valueOf(element), null);
                         if (playerEntity == null || StringUtils.isEmpty(playerEntity.getWebName())) {
                             return;
                         }
-                        String webName = this.getFpldleWebName(playerEntity.getWebName());
-                        String fpldle = this.getFpldleName(webName);
+                        String fpldle = this.getFpldleName(playerEntity.getWebName());
                         map.put(fpldle,
                                 new FpldleData()
                                         .setElement(o.getElement())
                                         .setCode(o.getCode())
                                         .setName(fpldle)
-                                        .setWebName(webName)
+                                        .setWebName(playerEntity.getWebName())
                                         .setFullName(StringUtils.joinWith(" ", playerEntity.getFirstName(), playerEntity.getSecondName()))
                                         .setSeason(season)
                                         .setPosition(PositionEnum.getNameFromElementType(playerEntity.getElementType()))
@@ -84,11 +83,8 @@ public class FpldleServiceImpl implements IFpldleService {
         log.info("insert Fpldle dictionary size:{}", map.size());
     }
 
-    private String getFpldleWebName(String webName) {
-        return webName.replaceAll(" ", "").replaceAll("'", "").replaceAll("-", "").replaceAll("é", "e").replaceAll("í", "i").replaceAll("ü", "u").replaceAll("Ö", "o").replaceAll("ć", "c").replaceAll("à", "a").replaceAll("ó", "o").replaceAll("ï", "i").replaceAll("ø", "o").replaceAll("ö", "o").replaceAll("á", "a").replaceAll("ß", "ss");
-    }
-
     private String getFpldleName(String webName) {
+        webName = this.getFpldleWebName(webName);
         String name;
         int length = 5;
         if (webName.length() < length) {
@@ -97,6 +93,32 @@ public class FpldleServiceImpl implements IFpldleService {
             name = webName.substring(0, length);
         }
         return StringUtils.upperCase(name);
+    }
+
+    private String getFpldleWebName(String webName) {
+        return webName
+                .replaceAll(" ", "")
+                .replaceAll("'", "")
+                .replaceAll("-", "")
+                .replaceAll("é", "e")
+                .replaceAll("í", "i")
+                .replaceAll("ü", "u")
+                .replaceAll("Ö", "o")
+                .replaceAll("ć", "c")
+                .replaceAll("à", "a")
+                .replaceAll("ó", "o")
+                .replaceAll("ï", "i")
+                .replaceAll("ø", "o")
+                .replaceAll("ö", "o")
+                .replaceAll("á", "a")
+                .replaceAll("ß", "ss")
+                .replaceAll("š", "s")
+                .replaceAll("ä", "a")
+                .replaceAll("ç", "c")
+                .replaceAll("\\.", "")
+                .replaceAll("ñ", "n")
+                .replaceAll("ú", "u")
+                .replaceAll("ã", "a");
     }
 
     @Override

@@ -1,15 +1,15 @@
 spring:
   redis:
-    host: 
-    port: 
+    host: 42.193.222.127
+    port: 6379
     lettuce:
       pool:
         max-active: 8
         max-idle: 8
         min-idle: 0
         max-wait: -1
-    password: 
+    password: letletguanlaoshiRedis14
     timeout: 60000ms
 server:
-  port: 
+  port: 8024
   address: 127.0.0.1

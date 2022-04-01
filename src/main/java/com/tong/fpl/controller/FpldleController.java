@@ -87,17 +87,17 @@ public class FpldleController {
     }
 
     @RequestMapping("/getLastDayHitRank")
-    public List<LastDayHitData> getLastDayHitRank(@RequestParam String date) {
+    public List<LastDayHitData> getLastDayHitRank() {
         return this.fpldleApi.getLastDayHitRank();
     }
 
     @RequestMapping("/getConsecutiveHitRank")
-    public List<ConsecutiveHitData> getConsecutiveHitRank(@RequestParam String date) {
+    public List<ConsecutiveHitData> getConsecutiveHitRank() {
         return this.fpldleApi.getConsecutiveHitRank();
     }
 
     @RequestMapping("/getAverageHitTimesRank")
-    public List<AverageHitTimesData> getAverageHitTimesRank(@RequestParam String date) {
+    public List<AverageHitTimesData> getAverageHitTimesRank() {
         return this.fpldleApi.getAverageHitTimesRank();
     }
 

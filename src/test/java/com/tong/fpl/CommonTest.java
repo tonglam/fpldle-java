@@ -4,6 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,8 +19,13 @@ public class CommonTest extends FpldleApplicationTests {
     @ParameterizedTest
     @CsvSource({"20220224"})
     void date(String date) {
-        String a = "S.Longstaff";
-        String b = a.replaceAll("\\.", "");
+        LocalDateTime dateTime = LocalDateTime.now();
+        LocalDateTime a = LocalDateTime.of(LocalDate.from(LocalDateTime.now().with(TemporalAdjusters.firstDayOfMonth())), LocalTime.MIN);
+        System.out.println(dateTime.isAfter(a));
+        System.out.println(1);
+
+//        String a = "S.Longstaff";
+//        String b = a.replaceAll("\\.", "");
 
 
 //        String lastDate = CommonUtils.getDateFromShortDay(date);

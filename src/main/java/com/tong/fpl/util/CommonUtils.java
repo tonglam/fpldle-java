@@ -4,6 +4,9 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 /**
@@ -39,6 +42,10 @@ public class CommonUtils {
             result.append(letter);
         }
         return result.toString();
+    }
+
+    public static LocalDateTime getFirstDayOfMonth() {
+        return LocalDateTime.of(LocalDate.from(LocalDateTime.now().with(TemporalAdjusters.firstDayOfMonth())), LocalTime.MIN);
     }
 
 }

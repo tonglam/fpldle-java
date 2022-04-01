@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -754,6 +755,7 @@ public class FpldleServiceImpl implements IFpldleService {
             Map<String, UserStatisticData> userStatisticMap = (Map<String, UserStatisticData>) v;
             UserStatisticData data = userStatisticMap.keySet()
                     .stream()
+                    .filter(o -> LocalDateTime.now().isAfter(CommonUtils.getFirstDayOfMonth()))
                     .filter(o -> StringUtils.equals(lastDay, o))
                     .map(o -> userStatisticMap.getOrDefault(o, null))
                     .findFirst()
@@ -809,6 +811,7 @@ public class FpldleServiceImpl implements IFpldleService {
             Map<String, UserStatisticData> userStatisticMap = (Map<String, UserStatisticData>) v;
             UserStatisticData data = userStatisticMap.keySet()
                     .stream()
+                    .filter(o -> LocalDateTime.now().isAfter(CommonUtils.getFirstDayOfMonth()))
                     .filter(o -> StringUtils.equals(date, o))
                     .map(o -> userStatisticMap.getOrDefault(o, null))
                     .findFirst()

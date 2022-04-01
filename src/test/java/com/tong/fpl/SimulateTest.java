@@ -18,7 +18,7 @@ public class SimulateTest extends FpldleApplicationTests {
     private ISimulatedGuessingService simulatedGuessingService;
 
     @ParameterizedTest
-    @CsvSource({"20220329"})
+    @CsvSource({"20220331"})
     void simulate(String date) {
         long start = System.currentTimeMillis();
         String answer = this.simulatedGuessingService.simulate(date);

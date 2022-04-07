@@ -262,7 +262,7 @@ public class FpldleServiceImpl implements IFpldleService {
         }
         // last one
         String lastResult = map.get(String.valueOf(map.size()));
-        if (StringUtils.equals(lastResult.replaceAll(",", ""), data.getName())) {
+        if (StringUtils.isNotEmpty(lastResult) && StringUtils.equals(lastResult.replaceAll(",", ""), data.getName())) {
             log.error("openId:{}, date:{}, result solved", openId, date);
             return;
         }

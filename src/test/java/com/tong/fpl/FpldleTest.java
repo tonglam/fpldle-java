@@ -55,7 +55,7 @@ public class FpldleTest extends FpldleApplicationTests {
     }
 
     @ParameterizedTest
-    @CsvSource({"odU8S419zNFdTEBDVSRrjFS-roVU, 'O,O,O,O,o'"})
+    @CsvSource({"odU8S419zNFdTEBDVSRrjFS-roVU, 'M,A,N,E,X'"})
     void insertDailyResult(String openId, String result) {
         this.fpldleService.insertDailyResult(openId, result);
     }

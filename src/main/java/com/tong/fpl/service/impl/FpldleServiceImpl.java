@@ -238,8 +238,23 @@ public class FpldleServiceImpl implements IFpldleService {
         if (StringUtils.isEmpty(openId) || openId.contains("invalid")) {
             return;
         }
-        // history
         String date = LocalDate.now().format(DateTimeFormatter.ofPattern(Constant.SHORTDAY));
+        // only upper case letters
+        String regex = "[A-Z]";
+        for (String letter :
+                CommonUtils.word2Letter(result.replaceAll(",", ""))) {
+            if (!letter.matches(regex)) {
+                log.error("openId:{}, date:{}, only support upper case letters", openId, date);
+                return;
+            }
+        }
+        // daily
+        FpldleData data = this.getDailyFpldle(date);
+        if (data == null) {
+            log.error("openId:{}, date:{}, fpldle data is empty", openId, date);
+            return;
+        }
+        // history
         String key = StringUtils.joinWith("::", Constant.REDIS_PREFIX, Constant.RESULT, openId);
         Map<String, String> map = (Map<String, String>) RedisUtils.getHashValue(key, date);
         if (CollectionUtils.isEmpty(map)) {
@@ -247,6 +262,10 @@ public class FpldleServiceImpl implements IFpldleService {
         }
         // last one
         String lastResult = map.get(String.valueOf(map.size()));
+        if (StringUtils.equals(lastResult.replaceAll(",", ""), data.getName())) {
+            log.error("openId:{}, date:{}, result solved", openId, date);
+            return;
+        }
         if (StringUtils.equals(lastResult, result)) {
             log.error("openId:{}, date:{}, result:{}, last_result:{} ,result repeat", openId, date, result, lastResult);
             return;

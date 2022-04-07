@@ -58,15 +58,4 @@ public class SimulateTest extends FpldleApplicationTests {
         dayList.forEach(this::simulate);
     }
 
-    @Test
-    void tesss() {
-        List<Long> list = Lists.newArrayList();
-        list.add(1L);
-        list.add(null);
-        list.add(2L);
-        long a = list.stream().reduce(Long::sum).orElse(0L);
-        System.out.println(1);
-
-    }
-
 }

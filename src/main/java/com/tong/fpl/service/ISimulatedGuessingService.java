@@ -8,9 +8,10 @@ public interface ISimulatedGuessingService {
     /**
      * 模拟猜词
      *
-     * @param date date
+     * @param openId openId
+     * @param date   date
      * @return guessResult
      */
-    String simulate(String date);
+    String simulate(String openId, String date);
 
 }

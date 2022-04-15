@@ -37,7 +37,7 @@ public class SimulatedGuessingServiceImpl implements ISimulatedGuessingService {
      * 1.find first guess which don't have the same letter
      */
     @Override
-    public String simulate(String date) {
+    public String simulate(String openId, String date) {
         // daily
         FpldleData fpldleData = this.fpldleService.getDailyFpldle(date);
         if (fpldleData == null) {
@@ -87,6 +87,7 @@ public class SimulatedGuessingServiceImpl implements ISimulatedGuessingService {
             return "";
         }
         String firstGuess = CommonUtils.letter2Word(firstGuessList);
+        this.fpldleService.insertDailyResult(openId, CommonUtils.word2Result(firstGuess));
         log.info("simulate guess, first guess:{}", firstGuess);
         // first verify
         this.verifyGuess(fpldle, fpldleMap, firstGuessList, hitMap, orderMultiMap, excludeList);
@@ -99,6 +100,7 @@ public class SimulatedGuessingServiceImpl implements ISimulatedGuessingService {
         if (candidateList.size() == 1) {
             String guess = candidateList.get(0);
             log.info("finish simulate guess, guess times:{}, answer:{}", 2, guess);
+            this.fpldleService.insertDailyResult(openId, CommonUtils.word2Result(guess));
             return guess;
         }
         // simulate next guess
@@ -109,22 +111,26 @@ public class SimulatedGuessingServiceImpl implements ISimulatedGuessingService {
                 return "";
             }
             String nextGuess = letterWordMap.get(nextGuessList);
+            this.fpldleService.insertDailyResult(openId, CommonUtils.word2Result(nextGuess));
             log.info("simulate guess, guess times:{}, guess:{}, remain size:{}", i, nextGuess, candidateList.size());
             this.verifyGuess(fpldle, fpldleMap, nextGuessList, hitMap, orderMultiMap, excludeList);
             // cut short next candidate
             candidateList = this.getCutShortCandidate(hitMap, orderMultiMap, excludeList, nextGuess, candidateList, wordLetterMap);
             if (CollectionUtils.isEmpty(candidateList)) {
                 log.info("finish simulate guess, guess times:{}, remain empty, answer:{}", i, nextGuess);
+                this.fpldleService.insertDailyResult(openId, CommonUtils.word2Result(nextGuess));
                 return nextGuess;
             }
             if (candidateList.size() == 1) {
                 String guess = candidateList.get(0);
                 log.info("finish simulate guess, guess times:{}, answer:{}", i + 1, guess);
+                this.fpldleService.insertDailyResult(openId, CommonUtils.word2Result(guess));
                 return guess;
             }
             log.info("simulate guess, guess times:{}, guess:{}, cut short remain size:{}", i, nextGuess, candidateList.size());
         }
         // none match
+        this.fpldleService.insertDailyResult(openId, StringUtils.joinWith(",", candidateList.get(0)));
         return candidateList.get(0);
     }
 

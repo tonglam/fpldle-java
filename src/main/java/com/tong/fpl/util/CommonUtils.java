@@ -35,6 +35,19 @@ public class CommonUtils {
         return list;
     }
 
+    public static String word2Result(String word) {
+        if (StringUtils.isEmpty(word)) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        char[] charArray = word.toCharArray();
+        for (char c :
+                charArray) {
+            builder.append(c).append(",");
+        }
+        return StringUtils.substringBeforeLast(builder.toString(), ",");
+    }
+
     public static String letter2Word(List<String> letterList) {
         StringBuilder result = new StringBuilder();
         for (String letter :
